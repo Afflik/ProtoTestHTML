@@ -2,45 +2,44 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"/>
+<meta
+  name="viewport"
+  content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"
+/>
 <title>Dice Field — Enhanced UI</title>
 <style>
-  :root{
-    /* Light theme colors */
-    --bg:#f8fafc;
-    --panel:#ffffff;
-    --text:#334155;
-    --muted:#64748b;
+  :root {
+    --bg: #f8fafc;
+    --panel: #ffffff;
+    --text: #334155;
+    --muted: #64748b;
 
-    /* Pastel dice palette */
-    --die-blue:#bfdbfe;
-    --die-cyan:#a5f3fc;
-    --die-pink:#fbcfe8;
-    --die-lime:#d9f99d;
-    --die-orange:#fed7aa;
-    --die-red:#fecaca;
-    --die-teal:#99f6e4;
+    --die-blue: #bfdbfe;
+    --die-cyan: #a5f3fc;
+    --die-pink: #fbcfe8;
+    --die-lime: #d9f99d;
+    --die-orange: #fed7aa;
+    --die-red: #fecaca;
+    --die-teal: #99f6e4;
 
-    /* Pastel accelerators */
-    --metronome:#fef3c7;
-    --string:#e0e7ff;
-    --corner:#f3e8ff;
+    --metronome: #fef3c7;
+    --string: #e0e7ff;
+    --corner: #f3e8ff;
 
-    --cell-bg1:#f1f5f9;
-    --cell-bg2:#e2e8f0;
-    --cell-bg3:#cbd5e1;
-    --cell-border:rgba(100,116,139,.3);
-    --cell-border-occupied:rgba(100,116,139,.5);
+    --cell-bg1: #f1f5f9;
+    --cell-bg2: #e2e8f0;
+    --cell-bg3: #cbd5e1;
+    --cell-border: rgba(100, 116, 139, 0.3);
+    --cell-border-occupied: rgba(100, 116, 139, 0.5);
 
-    --glow-metro: rgba(251,191,36,.8);
-    --glow-string: rgba(129,140,248,.8);
-    --glow-corner: rgba(139,92,246,.8);
+    --glow-metro: rgba(251, 191, 36, 0.8);
+    --glow-string: rgba(129, 140, 248, 0.8);
+    --glow-corner: rgba(139, 92, 246, 0.8);
     --glow-strong: 0 0 15px;
 
-    --cell-size:50px;
+    --cell-size: 50px;
   }
 
-  /* Mobile adaptations */
   @media (max-width: 768px) {
     :root {
       --cell-size: 50px;
@@ -53,362 +52,599 @@
     }
   }
 
-  *{box-sizing:border-box}
-  html,body{
-    height:100%; margin:0; padding:0;
+  * {
+    box-sizing: border-box;
+  }
+  html,
+  body {
+    height: 100%;
+    margin: 0;
+    padding: 0;
     background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
-    color:var(--text); font-family:Inter,system-ui,Segoe UI,Roboto,Helvetica,Arial,sans-serif;
+    color: var(--text);
+    font-family: Inter, system-ui, Segoe UI, Roboto, Helvetica, Arial, sans-serif;
     touch-action: manipulation;
     -webkit-touch-callout: none;
     -webkit-user-select: none;
-    -khtml-user-select: none;
-    -moz-user-select: none;
-    -ms-user-select: none;
     user-select: none;
     overflow-x: hidden;
   }
 
-  .wrap{ 
-    min-height: 100vh; 
-    display: grid; 
+  .wrap {
+    min-height: 100vh;
+    display: grid;
     grid-template-rows: auto 1fr auto;
     overscroll-behavior: none;
   }
 
-  header{
-    position:sticky; top:0; z-index:10;
-    display:flex; align-items:center; gap:8px; padding:8px 12px;
-    background:rgba(255,255,255,.95); backdrop-filter: blur(10px);
-    border-bottom:1px solid rgba(100,116,139,.2);
-    box-shadow: 0 1px 3px rgba(100,116,139,.1);
+  header {
+    position: sticky;
+    top: 0;
+    z-index: 10;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 12px;
+    background: rgba(255, 255, 255, 0.95);
+    backdrop-filter: blur(10px);
+    border-bottom: 1px solid rgba(100, 116, 139, 0.2);
+    box-shadow: 0 1px 3px rgba(100, 116, 139, 0.1);
   }
-  .title{font-weight:800; letter-spacing:.4px; color:var(--text); font-size:16px;}
-  .spacer{flex:1}
-  .pill{
-    padding:4px 8px; border-radius:999px; font-size:10px; color:var(--muted);
-    background:rgba(241,245,249,.8); border:1px solid rgba(100,116,139,.2);
+  .title {
+    font-weight: 800;
+    letter-spacing: 0.4px;
+    color: var(--text);
+    font-size: 16px;
+  }
+  .spacer {
+    flex: 1;
+  }
+  .pill {
+    padding: 4px 8px;
+    border-radius: 999px;
+    font-size: 10px;
+    color: var(--muted);
+    background: rgba(241, 245, 249, 0.8);
+    border: 1px solid rgba(100, 116, 139, 0.2);
   }
 
-  .center{ 
-    display:grid; place-items:center; 
-    padding:24px 8px 80px;
+  .center {
+    display: grid;
+    place-items: center;
+    padding: 24px 8px 80px;
     max-width: 100vw;
     overflow: hidden;
   }
 
-  .board-frame{
-    position:relative; padding:12px; border-radius:16px;
-    background:var(--panel);
-    border:1px solid rgba(100,116,139,.2);
-    box-shadow: 0 8px 20px rgba(100,116,139,.1);
+  .board-frame {
+    position: relative;
+    padding: 12px;
+    border-radius: 16px;
+    background: var(--panel);
+    border: 1px solid rgba(100, 116, 139, 0.2);
+    box-shadow: 0 8px 20px rgba(100, 116, 139, 0.1);
     max-width: calc(100vw - 24px);
   }
-  .board-title{
-    position:absolute; top:-8px; left:50%; transform:translateX(-50%);
-    font-size:10px; color:var(--muted); padding:3px 8px; border-radius:999px;
-    background:var(--panel); border:1px solid rgba(100,116,139,.2);
-    letter-spacing:.4px;
+  .board-title {
+    position: absolute;
+    top: -8px;
+    left: 50%;
+    transform: translateX(-50%);
+    font-size: 10px;
+    color: var(--muted);
+    padding: 3px 8px;
+    border-radius: 999px;
+    background: var(--panel);
+    border: 1px solid rgba(100, 116, 139, 0.2);
+    letter-spacing: 0.4px;
   }
 
-  .board{
-    --size:7;
-    display:grid; grid-template-columns: repeat(var(--size), var(--cell-size));
+  .board {
+    --size: 7;
+    display: grid;
+    grid-template-columns: repeat(var(--size), var(--cell-size));
     grid-template-rows: repeat(var(--size), var(--cell-size));
-    gap:3px; position:relative;
-    filter: drop-shadow(0 2px 4px rgba(100,116,139,.1));
-    user-select:none;
+    gap: 3px;
+    position: relative;
+    filter: drop-shadow(0 2px 4px rgba(100, 116, 139, 0.1));
+    user-select: none;
     max-width: calc(7 * var(--cell-size) + 6 * 3px);
   }
 
-  .cell{
-    position:relative; width:var(--cell-size); height:var(--cell-size);
-    min-width:var(--cell-size); min-height:var(--cell-size);
-    border-radius:6px; overflow:hidden;
-    background: linear-gradient(135deg, var(--cell-bg1) 0%, var(--cell-bg2) 50%, var(--cell-bg3) 100%);
-    border:1px solid var(--cell-border);
-    box-shadow: inset 0 1px 0 rgba(255,255,255,.8), inset 0 -1px 2px rgba(100,116,139,.1);
-    transition:border-color .15s ease, transform .12s ease, outline-color .12s ease;
+  .cell {
+    position: relative;
+    width: var(--cell-size);
+    height: var(--cell-size);
+    min-width: var(--cell-size);
+    min-height: var(--cell-size);
+    border-radius: 6px;
+    overflow: hidden;
+    background: linear-gradient(
+      135deg,
+      var(--cell-bg1) 0%,
+      var(--cell-bg2) 50%,
+      var(--cell-bg3) 100%
+    );
+    border: 1px solid var(--cell-border);
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.8),
+      inset 0 -1px 2px rgba(100, 116, 139, 0.1);
+    transition: border-color 0.15s ease, transform 0.12s ease,
+      outline-color 0.12s ease;
     touch-action: none;
   }
-  .cell.occupied{border-color: var(--cell-border-occupied)}
-  .cell.drag-over{outline:2px solid #3b82f6; outline-offset:-2px}
+  .cell.occupied {
+    border-color: var(--cell-border-occupied);
+  }
+  .cell.drag-over {
+    outline: 2px solid #3b82f6;
+    outline-offset: -2px;
+  }
 
-  .coverage{
-    position:absolute; inset:0; border-radius:6px; pointer-events:none;
-    border:2px solid transparent; opacity:.9;
+  .coverage {
+    position: absolute;
+    inset: 0;
+    border-radius: 6px;
+    pointer-events: none;
+    border: 2px solid transparent;
+    opacity: 0.9;
     transition: all 0.3s ease;
     z-index: 1;
   }
-  .coverage.metronome{
+  .coverage.metronome {
     border-color: #f59e0b;
-    background: rgba(251,191,36,.2);
-    box-shadow: 
-      var(--glow-strong) var(--glow-metro),
-      inset 0 0 20px rgba(255,204,77,.3),
-      0 0 0 1px rgba(245,158,11,.4);
+    background: rgba(251, 191, 36, 0.2);
+    box-shadow: var(--glow-strong) var(--glow-metro),
+      inset 0 0 20px rgba(255, 204, 77, 0.3),
+      0 0 0 1px rgba(245, 158, 11, 0.4);
   }
-  .coverage.string{
+  .coverage.string {
     border-color: #6366f1;
-    background: rgba(129,140,248,.2);
-    box-shadow: 
-      var(--glow-strong) var(--glow-string),
-      inset 0 0 20px rgba(129,140,248,.3),
-      0 0 0 1px rgba(99,102,241,.4);
+    background: rgba(129, 140, 248, 0.2);
+    box-shadow: var(--glow-strong) var(--glow-string),
+      inset 0 0 20px rgba(129, 140, 248, 0.3),
+      0 0 0 1px rgba(99, 102, 241, 0.4);
     animation: stringPulse 1.5s ease-in-out infinite;
   }
-  .coverage.corner{
+  .coverage.corner {
     border-color: #8b5cf6;
-    background: rgba(139,92,246,.2);
-    box-shadow: 
-      var(--glow-strong) var(--glow-corner),
-      inset 0 0 20px rgba(139,92,246,.3),
-      0 0 0 1px rgba(139,92,246,.4);
+    background: rgba(139, 92, 246, 0.2);
+    box-shadow: var(--glow-strong) var(--glow-corner),
+      inset 0 0 20px rgba(139, 92, 246, 0.3),
+      0 0 0 1px rgba(139, 92, 246, 0.4);
     animation: cornerPulse 2s ease-in-out infinite;
   }
-  .coverage.string.level-2{
+  .coverage.string.level-2 {
     animation: stringPulse 1.2s ease-in-out infinite;
   }
-  .coverage.string.level-3{
+  .coverage.string.level-3 {
     animation: stringPulse 0.9s ease-in-out infinite;
   }
-  .coverage.corner.level-2{
+  .coverage.corner.level-2 {
     animation: cornerPulse 1.7s ease-in-out infinite;
   }
-  .coverage.corner.level-3{
+  .coverage.corner.level-3 {
     animation: cornerPulse 1.4s ease-in-out infinite;
   }
-  .coverage.active-side{ 
-    animation: activeSide 0.9s ease-out; 
-    background: rgba(251,191,36,.4);
+  .coverage.active-side {
+    animation: activeSide 0.9s ease-out;
+    background: rgba(251, 191, 36, 0.4);
     border-color: #f97316;
-    box-shadow: 
-      0 0 25px rgba(249,115,22,.8),
-      inset 0 0 25px rgba(249,115,22,.4),
-      0 0 0 2px rgba(249,115,22,.6);
+    box-shadow: 0 0 25px rgba(249, 115, 22, 0.8),
+      inset 0 0 25px rgba(249, 115, 22, 0.4),
+      0 0 0 2px rgba(249, 115, 22, 0.6);
   }
-  .coverage.corner-echo{
+  .coverage.corner-echo {
     animation: cornerEcho 1.2s ease-out;
-    background: rgba(139,92,246,.5);
+    background: rgba(139, 92, 246, 0.5);
     border-color: #a855f7;
-    box-shadow: 
-      0 0 30px rgba(168,85,247,.9),
-      inset 0 0 30px rgba(168,85,247,.5),
-      0 0 0 2px rgba(168,85,247,.7);
-  }
-  
-  @keyframes activeSide{ 
-    0%{opacity:.5; transform:scale(.95)} 
-    30%{opacity:1; transform:scale(1.02)} 
-    100%{opacity:.9; transform:scale(1)} 
-  }
-  @keyframes stringPulse{ 
-    0%{opacity:.7; transform:scale(.98); border-color: #6366f1} 
-    50%{opacity:1; transform:scale(1.02); border-color: #8b5cf6} 
-    100%{opacity:.7; transform:scale(.98); border-color: #6366f1} 
-  }
-  @keyframes cornerPulse{ 
-    0%{opacity:.7; transform:scale(.98); border-color: #8b5cf6} 
-    50%{opacity:1; transform:scale(1.02); border-color: #a855f7} 
-    100%{opacity:.7; transform:scale(.98); border-color: #8b5cf6} 
-  }
-  @keyframes cornerEcho{
-    0%{opacity:0; transform:scale(.9)}
-    30%{opacity:1; transform:scale(1.1)}
-    100%{opacity:0; transform:scale(1.2)}
+    box-shadow: 0 0 30px rgba(168, 85, 247, 0.9),
+      inset 0 0 30px rgba(168, 85, 247, 0.5),
+      0 0 0 2px rgba(168, 85, 247, 0.7);
   }
 
-  .outline{
-    position:absolute; inset:0; border-radius:6px; pointer-events:none; 
-    border:2px solid transparent;
+  @keyframes activeSide {
+    0% {
+      opacity: 0.5;
+      transform: scale(0.95);
+    }
+    30% {
+      opacity: 1;
+      transform: scale(1.02);
+    }
+    100% {
+      opacity: 0.9;
+      transform: scale(1);
+    }
+  }
+  @keyframes stringPulse {
+    0% {
+      opacity: 0.7;
+      transform: scale(0.98);
+      border-color: #6366f1;
+    }
+    50% {
+      opacity: 1;
+      transform: scale(1.02);
+      border-color: #8b5cf6;
+    }
+    100% {
+      opacity: 0.7;
+      transform: scale(0.98);
+      border-color: #6366f1;
+    }
+  }
+  @keyframes cornerPulse {
+    0% {
+      opacity: 0.7;
+      transform: scale(0.98);
+      border-color: #8b5cf6;
+    }
+    50% {
+      opacity: 1;
+      transform: scale(1.02);
+      border-color: #a855f7;
+    }
+    100% {
+      opacity: 0.7;
+      transform: scale(0.98);
+      border-color: #8b5cf6;
+    }
+  }
+  @keyframes cornerEcho {
+    0% {
+      opacity: 0;
+      transform: scale(0.9);
+    }
+    30% {
+      opacity: 1;
+      transform: scale(1.1);
+    }
+    100% {
+      opacity: 0;
+      transform: scale(1.2);
+    }
+  }
+
+  .outline {
+    position: absolute;
+    inset: 0;
+    border-radius: 6px;
+    pointer-events: none;
+    border: 2px solid transparent;
     transition: all 0.2s ease;
     z-index: 1;
   }
-  .outline.metronome{
-    border-color:#f59e0b;
-    background: rgba(251,191,36,.3);
-    box-shadow: 
-      0 0 20px rgba(251,191,36,.6),
-      inset 0 0 15px rgba(251,191,36,.3);
+  .outline.metronome {
+    border-color: #f59e0b;
+    background: rgba(251, 191, 36, 0.3);
+    box-shadow: 0 0 20px rgba(251, 191, 36, 0.6),
+      inset 0 0 15px rgba(251, 191, 36, 0.3);
     animation: pulseM 900ms ease-out;
   }
-  .outline.string{
-    border-color:#6366f1;
-    background: rgba(129,140,248,.3);
-    box-shadow: 
-      0 0 20px rgba(129,140,248,.6),
-      inset 0 0 15px rgba(129,140,248,.3);
+  .outline.string {
+    border-color: #6366f1;
+    background: rgba(129, 140, 248, 0.3);
+    box-shadow: 0 0 20px rgba(129, 140, 248, 0.6),
+      inset 0 0 15px rgba(129, 140, 248, 0.3);
     animation: pulseS 900ms ease-out;
   }
-  .outline.corner{
-    border-color:#8b5cf6;
-    background: rgba(139,92,246,.3);
-    box-shadow: 
-      0 0 20px rgba(139,92,246,.6),
-      inset 0 0 15px rgba(139,92,246,.3);
+  .outline.corner {
+    border-color: #8b5cf6;
+    background: rgba(139, 92, 246, 0.3);
+    box-shadow: 0 0 20px rgba(139, 92, 246, 0.6),
+      inset 0 0 15px rgba(139, 92, 246, 0.3);
     animation: pulseC 900ms ease-out;
   }
-  @keyframes pulseM{ 
-    0%{opacity:0; transform:scale(.9)} 
-    40%{opacity:1; transform:scale(1.05)} 
-    100%{opacity:0; transform:scale(1)} 
+  @keyframes pulseM {
+    0% {
+      opacity: 0;
+      transform: scale(0.9);
+    }
+    40% {
+      opacity: 1;
+      transform: scale(1.05);
+    }
+    100% {
+      opacity: 0;
+      transform: scale(1);
+    }
   }
-  @keyframes pulseS{ 
-    0%{opacity:0; transform:scale(.9)} 
-    40%{opacity:1; transform:scale(1.05)} 
-    100%{opacity:0; transform:scale(1)} 
+  @keyframes pulseS {
+    0% {
+      opacity: 0;
+      transform: scale(0.9);
+    }
+    40% {
+      opacity: 1;
+      transform: scale(1.05);
+    }
+    100% {
+      opacity: 0;
+      transform: scale(1);
+    }
   }
-  @keyframes pulseC{ 
-    0%{opacity:0; transform:scale(.9)} 
-    40%{opacity:1; transform:scale(1.05)} 
-    100%{opacity:0; transform:scale(1)} 
+  @keyframes pulseC {
+    0% {
+      opacity: 0;
+      transform: scale(0.9);
+    }
+    40% {
+      opacity: 1;
+      transform: scale(1.05);
+    }
+    100% {
+      opacity: 0;
+      transform: scale(1);
+    }
   }
 
-  .piece{
-    position:absolute;
-    top:50%; left:50%;
-    transform:translate(-50%, -50%);
+  .piece {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
     width: calc(var(--cell-size) * 0.81);
     height: calc(var(--cell-size) * 0.81);
-    border-radius:4px;
-    display:flex; align-items:center; justify-content:center; text-align:center;
-    font-weight:700; letter-spacing:.2px; user-select:none; cursor:grab;
-    transition: transform .12s ease, box-shadow .12s ease, filter .12s ease;
-    box-shadow: 0 2px 4px rgba(100,116,139,.2), inset 0 1px 0 rgba(255,255,255,.5);
+    border-radius: 4px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    font-weight: 700;
+    letter-spacing: 0.2px;
+    user-select: none;
+    cursor: grab;
+    transition: transform 0.12s ease, box-shadow 0.12s ease, filter 0.12s ease;
+    box-shadow: 0 2px 4px rgba(100, 116, 139, 0.2),
+      inset 0 1px 0 rgba(255, 255, 255, 0.5);
     touch-action: none;
     z-index: 5;
   }
-  .piece.inactive{filter: saturate(.7) brightness(.95); opacity:.9}
-  .piece:hover{transform:translate(-50%, -50%) translateY(-1px)}
-  .piece:active{transform:translate(-50%, -50%) translateY(0)}
-  .piece.dragging{transform:translate(-50%, -50%) scale(1.1); z-index:1000; opacity:.9;}
+  .piece.inactive {
+    filter: saturate(0.7) brightness(0.95);
+    opacity: 0.9;
+  }
+  .piece:hover {
+    transform: translate(-50%, -50%) translateY(-1px);
+  }
+  .piece.dragging {
+    transform: translate(-50%, -50%) scale(1.1);
+    z-index: 1000;
+    opacity: 0.9;
+  }
 
-  .die{
-    color:#374151; font-size:11px; position:relative;
-    display:flex; align-items:center; justify-content:center;
-    border:1px solid rgba(100,116,139,.3);
+  .die {
+    color: #374151;
+    font-size: 11px;
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: 1px solid rgba(100, 116, 139, 0.3);
   }
-  .die .digit{
-    position:absolute; top:50%; left:50%; transform:translate(-50%,-50%);
-    font-weight:800; text-shadow: 0 1px 2px rgba(255,255,255,.8);
-    line-height:1;
+  .die .digit {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    font-weight: 800;
+    text-shadow: 0 1px 2px rgba(255, 255, 255, 0.8);
+    line-height: 1;
   }
-  .cdbar{
-    position:absolute; 
-    left:3px; right:3px; bottom:3px; 
-    height:4px; border-radius:999px;
+  .cdbar {
+    position: absolute;
+    left: 3px;
+    right: 3px;
+    bottom: 3px;
+    height: 4px;
+    border-radius: 999px;
     background: #ffffff;
-    overflow:hidden; 
-    border:1px solid rgba(100,116,139,.4);
-    z-index:10;
+    overflow: hidden;
+    border: 1px solid rgba(100, 116, 139, 0.4);
+    z-index: 10;
   }
-  .cdbar .fill{
-    height:100%; width:0%; 
+  .cdbar .fill {
+    height: 100%;
+    width: 0%;
     background: linear-gradient(90deg, #10b981, #34d399);
-    transition: width .1s ease-out;
-    box-shadow: 0 0 8px rgba(16,185,129,.8);
-    border-radius:999px;
+    transition: width 0.1s ease-out;
+    box-shadow: 0 0 8px rgba(16, 185, 129, 0.8);
+    border-radius: 999px;
   }
 
-  .acc{ 
-    color:#374151; font-weight:700; text-shadow:none; position:relative;
-    display:flex; align-items:center; justify-content:center; font-size:9px;
-    border:1px solid rgba(100,116,139,.3);
+  .acc {
+    color: #374151;
+    font-weight: 700;
+    text-shadow: none;
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 9px;
+    border: 1px solid rgba(100, 116, 139, 0.3);
     width: calc(var(--cell-size) * 0.99);
     height: calc(var(--cell-size) * 0.99);
   }
-  .acc.metronome{
+  .acc.metronome {
     background: var(--metronome);
   }
-  .acc.string{
+  .acc.string {
     background: var(--string);
   }
-  .acc.corner{
+  .acc.corner {
     background: var(--corner);
   }
-  
-  .acc.string.field-pulse{
+
+  .acc.string.field-pulse {
     animation: stringAccSizePulse 1.5s ease-in-out infinite;
   }
-  .acc.corner.field-pulse{
+  .acc.corner.field-pulse {
     animation: cornerAccSizePulse 2s ease-in-out infinite;
   }
-  @keyframes stringAccSizePulse{
-    0%{transform: translate(-50%, -50%) scale(.95)}
-    50%{transform: translate(-50%, -50%) scale(1.05)}
-    100%{transform: translate(-50%, -50%) scale(.95)}
+  @keyframes stringAccSizePulse {
+    0% {
+      transform: translate(-50%, -50%) scale(0.95);
+    }
+    50% {
+      transform: translate(-50%, -50%) scale(1.05);
+    }
+    100% {
+      transform: translate(-50%, -50%) scale(0.95);
+    }
   }
-  @keyframes cornerAccSizePulse{
-    0%{transform: translate(-50%, -50%) scale(.95)}
-    50%{transform: translate(-50%, -50%) scale(1.08)}
-    100%{transform: translate(-50%, -50%) scale(.95)}
-  }
-
-  .acc.metronome.pushL{ transform: translate(-50%, -50%) translateX(-2px); }
-  .acc.metronome.pushR{ transform: translate(-50%, -50%) translateX(2px); }
-  .acc.metronome.pushU{ transform: translate(-50%, -50%) translateY(-2px); }
-  .acc.metronome.pushD{ transform: translate(-50%, -50%) translateY(2px); }
-
-  .acc.corner.echo-pulse{ 
-    animation: cornerEchoPulse .8s ease-out;
-  }
-  @keyframes cornerEchoPulse{
-    0%{transform: translate(-50%, -50%) scale(.95)}
-    40%{transform: translate(-50%, -50%) scale(1.15)}
-    100%{transform: translate(-50%, -50%) scale(.95)}
+  @keyframes cornerAccSizePulse {
+    0% {
+      transform: translate(-50%, -50%) scale(0.95);
+    }
+    50% {
+      transform: translate(-50%, -50%) scale(1.08);
+    }
+    100% {
+      transform: translate(-50%, -50%) scale(0.95);
+    }
   }
 
-  .dice-shake{ 
-    animation: diceShake .4s ease-in-out;
+  .acc.metronome.pushL {
+    transform: translate(-50%, -50%) translateX(-2px);
   }
-  @keyframes diceShake{
-    0% { transform: translate(-50%, -50%) translateX(0) translateY(0); }
-    10% { transform: translate(-50%, -50%) translateX(-1px) translateY(-1px); }
-    20% { transform: translate(-50%, -50%) translateX(1px) translateY(1px); }
-    30% { transform: translate(-50%, -50%) translateX(-1px) translateY(-1px); }
-    40% { transform: translate(-50%, -50%) translateX(1px) translateY(1px); }
-    50% { transform: translate(-50%, -50%) translateX(-1px) translateY(1px); }
-    60% { transform: translate(-50%, -50%) translateX(1px) translateY(-1px); }
-    70% { transform: translate(-50%, -50%) translateX(-1px) translateY(1px); }
-    80% { transform: translate(-50%, -50%) translateX(1px) translateY(-1px); }
-    90% { transform: translate(-50%, -50%) translateX(-1px) translateY(1px); }
-    100% { transform: translate(-50%, -50%) translateX(0) translateY(0); }
+  .acc.metronome.pushR {
+    transform: translate(-50%, -50%) translateX(2px);
   }
-  
-  .spark{ position:absolute; inset:0; pointer-events:none; }
-  .beam{
-    position:absolute; left:10%; top:50%; width:80%; height:1px; border-radius:1px;
-    background: linear-gradient(90deg, rgba(59,130,246,0), rgba(59,130,246,.8), rgba(59,130,246,0));
-    transform-origin:left center; filter: blur(.2px);
-    animation: beam .6s ease-out;
+  .acc.metronome.pushU {
+    transform: translate(-50%, -50%) translateY(-2px);
   }
-  @keyframes beam{ 0%{opacity:0; transform:scaleX(0)} 25%{opacity:1; transform:scaleX(.65)} 100%{opacity:0; transform:scaleX(1)} }
+  .acc.metronome.pushD {
+    transform: translate(-50%, -50%) translateY(2px);
+  }
 
-  .store-wrap{
-    position:sticky; bottom:0; z-index:9;
-    padding:8px 12px 12px; 
-    background: linear-gradient(180deg, rgba(248,250,252,0) 0%, rgba(248,250,252,.95) 20%, rgba(248,250,252,1) 100%);
+  .acc.corner.echo-pulse {
+    animation: cornerEchoPulse 0.8s ease-out;
+  }
+  @keyframes cornerEchoPulse {
+    0% {
+      transform: translate(-50%, -50%) scale(0.95);
+    }
+    40% {
+      transform: translate(-50%, -50%) scale(1.15);
+    }
+    100% {
+      transform: translate(-50%, -50%) scale(0.95);
+    }
+  }
+
+  .dice-shake {
+    animation: diceShake 0.4s ease-in-out;
+  }
+  @keyframes diceShake {
+    0% {
+      transform: translate(-50%, -50%) translateX(0) translateY(0);
+    }
+    10% {
+      transform: translate(-50%, -50%) translateX(-1px) translateY(-1px);
+    }
+    20% {
+      transform: translate(-50%, -50%) translateX(1px) translateY(1px);
+    }
+    30% {
+      transform: translate(-50%, -50%) translateX(-1px) translateY(-1px);
+    }
+    40% {
+      transform: translate(-50%, -50%) translateX(1px) translateY(1px);
+    }
+    50% {
+      transform: translate(-50%, -50%) translateX(-1px) translateY(1px);
+    }
+    60% {
+      transform: translate(-50%, -50%) translateX(1px) translateY(-1px);
+    }
+    70% {
+      transform: translate(-50%, -50%) translateX(-1px) translateY(1px);
+    }
+    80% {
+      transform: translate(-50%, -50%) translateX(1px) translateY(-1px);
+    }
+    90% {
+      transform: translate(-50%, -50%) translateX(-1px) translateY(1px);
+    }
+    100% {
+      transform: translate(-50%, -50%) translateX(0) translateY(0);
+    }
+  }
+
+  .spark {
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+  }
+  .beam {
+    position: absolute;
+    left: 10%;
+    top: 50%;
+    width: 80%;
+    height: 1px;
+    border-radius: 1px;
+    background: linear-gradient(
+      90deg,
+      rgba(59, 130, 246, 0),
+      rgba(59, 130, 246, 0.8),
+      rgba(59, 130, 246, 0)
+    );
+    transform-origin: left center;
+    filter: blur(0.2px);
+    animation: beam 0.6s ease-out;
+  }
+  @keyframes beam {
+    0% {
+      opacity: 0;
+      transform: scaleX(0);
+    }
+    25% {
+      opacity: 1;
+      transform: scaleX(0.65);
+    }
+    100% {
+      opacity: 0;
+      transform: scaleX(1);
+    }
+  }
+
+  .store-wrap {
+    position: sticky;
+    bottom: 0;
+    z-index: 9;
+    padding: 8px 12px 12px;
+    background: linear-gradient(
+      180deg,
+      rgba(248, 250, 252, 0) 0%,
+      rgba(248, 250, 252, 0.95) 20%,
+      rgba(248, 250, 252, 1) 100%
+    );
     max-width: 100vw;
     overflow-x: auto;
   }
-  .store-panel{
-    border-radius:12px; background:var(--panel);
-    border:1px solid rgba(100,116,139,.2);
-    box-shadow: 0 4px 12px rgba(100,116,139,.1);
-    padding:8px;
+  .store-panel {
+    border-radius: 12px;
+    background: var(--panel);
+    border: 1px solid rgba(100, 116, 139, 0.2);
+    box-shadow: 0 4px 12px rgba(100, 116, 139, 0.1);
+    padding: 8px;
   }
-  .store-head{ 
-    display:flex; align-items:center; justify-content:center; margin-bottom:8px;
+  .store-head {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 8px;
     color: var(--text);
     font-weight: 600;
     font-size: 14px;
   }
-  
+
   .store-info {
     margin-bottom: 12px;
     padding: 8px;
-    background: rgba(248,250,252,.8);
+    background: rgba(248, 250, 252, 0.8);
     border-radius: 8px;
-    border: 1px solid rgba(100,116,139,.15);
+    border: 1px solid rgba(100, 116, 139, 0.15);
   }
   .enhancer-desc {
     display: flex;
@@ -430,195 +666,329 @@
     justify-content: center;
     font-size: 7px;
     font-weight: 700;
-    border: 1px solid rgba(100,116,139,.3);
+    border: 1px solid rgba(100, 116, 139, 0.3);
     flex-shrink: 0;
   }
-  .enhancer-icon.metronome { background: var(--metronome); }
-  .enhancer-icon.string { background: var(--string); }
-  .enhancer-icon.corner { background: var(--corner); }
-
-  .store-controls{
-    display:flex; align-items:center; justify-content:center; gap:8px; 
-    padding-top: 8px;
-    border-top: 1px solid rgba(100,116,139,.1);
+  .enhancer-icon.metronome {
+    background: var(--metronome);
   }
-  .btn{
-    background:linear-gradient(180deg,#ffffff,#f1f5f9);
-    border:1px solid #cbd5e1; color:var(--text); padding:6px 10px; border-radius:12px;
-    cursor:pointer; box-shadow: 0 1px 3px rgba(100,116,139,.1);
-    transition:.15s transform, .2s background, .2s box-shadow;
-    font-weight:600; font-size:12px;
+  .enhancer-icon.string {
+    background: var(--string);
+  }
+  .enhancer-icon.corner {
+    background: var(--corner);
+  }
+
+  .store-controls {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    padding-top: 8px;
+    border-top: 1px solid rgba(100, 116, 139, 0.1);
+  }
+  .btn {
+    background: linear-gradient(180deg, #ffffff, #f1f5f9);
+    border: 1px solid #cbd5e1;
+    color: var(--text);
+    padding: 6px 10px;
+    border-radius: 12px;
+    cursor: pointer;
+    box-shadow: 0 1px 3px rgba(100, 116, 139, 0.1);
+    transition: 0.15s transform, 0.2s background, 0.2s box-shadow;
+    font-weight: 600;
+    font-size: 12px;
     min-height: 36px;
     touch-action: manipulation;
     flex: 1;
     max-width: 120px;
   }
-  .btn:hover{transform:translateY(-1px); background:linear-gradient(180deg,#f8fafc,#e2e8f0); box-shadow: 0 4px 6px rgba(100,116,139,.15)}
-  .btn:active{transform:translateY(0)}
+  .btn:hover {
+    transform: translateY(-1px);
+    background: linear-gradient(180deg, #f8fafc, #e2e8f0);
+    box-shadow: 0 4px 6px rgba(100, 116, 139, 0.15);
+  }
+  .btn:active {
+    transform: translateY(0);
+  }
 
-  .store-grid{ 
-    display:grid; grid-template-columns: repeat(3, 80px); gap:8px; justify-content:center;
+  .store-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 80px);
+    gap: 8px;
+    justify-content: center;
     max-width: calc(3 * 80px + 2 * 8px);
     margin: 0 auto;
   }
-  .slot{
-    position:relative; width:80px; height:80px; border-radius:10px; overflow:hidden;
-    display:flex; align-items:center; justify-content:center;
-    background:linear-gradient(135deg,#f8fafc,#e2e8f0);
-    border:2px solid rgba(100,116,139,.2);
-    box-shadow: 0 2px 4px rgba(100,116,139,.1);
-    cursor:grab;
+  .slot {
+    position: relative;
+    width: 80px;
+    height: 80px;
+    border-radius: 10px;
+    overflow: hidden;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: linear-gradient(135deg, #f8fafc, #e2e8f0);
+    border: 2px solid rgba(100, 116, 139, 0.2);
+    box-shadow: 0 2px 4px rgba(100, 116, 139, 0.1);
+    cursor: grab;
     touch-action: none;
     min-height: 44px;
   }
-  .slot:active{cursor:grabbing}
-  .slot .label{
-    position:absolute; bottom:4px; left:4px;
-    font-size:9px; color:var(--muted); opacity:.9;
-    background:rgba(255,255,255,.9); padding:1px 4px; border-radius:999px; border:1px solid rgba(100,116,139,.2);
+  .slot:active {
+    cursor: grabbing;
   }
-  .slot .preview{
-    position:absolute; inset:6px; border-radius:8px; display:flex; align-items:center; justify-content:center;
-    width: calc(100% - 12px); height: calc(100% - 12px);
-    box-shadow: 0 2px 4px rgba(100,116,139,.2), inset 0 1px 0 rgba(255,255,255,.5);
-    border:1px solid rgba(100,116,139,.2);
-    color:#374151; font-weight:700;
+  .slot .label {
+    position: absolute;
+    bottom: 4px;
+    left: 4px;
+    font-size: 9px;
+    color: var(--muted);
+    opacity: 0.9;
+    background: rgba(255, 255, 255, 0.9);
+    padding: 1px 4px;
+    border-radius: 999px;
+    border: 1px solid rgba(100, 116, 139, 0.2);
+  }
+  .slot .preview {
+    position: absolute;
+    inset: 6px;
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: calc(100% - 12px);
+    height: calc(100% - 12px);
+    box-shadow: 0 2px 4px rgba(100, 116, 139, 0.2),
+      inset 0 1px 0 rgba(255, 255, 255, 0.5);
+    border: 1px solid rgba(100, 116, 139, 0.2);
+    color: #374151;
+    font-weight: 700;
   }
 
-  .ghost{
-    position:fixed; 
-    width: calc(var(--cell-size) * 0.81); 
+  .ghost {
+    position: fixed;
+    width: calc(var(--cell-size) * 0.81);
     height: calc(var(--cell-size) * 0.81);
     margin-left: calc(-1 * var(--cell-size) * 0.405);
-    margin-top:  calc(-1 * var(--cell-size) * 0.405);
-    border-radius:4px; pointer-events:none; opacity:.9; z-index:9999;
-    box-shadow: 0 4px 12px rgba(100,116,139,.4), inset 0 1px 0 rgba(255,255,255,.5);
-    border:1px solid rgba(100,116,139,.3);
-    display:flex; align-items:center; justify-content:center; color:#374151; font-weight:700; font-size:9px;
+    margin-top: calc(-1 * var(--cell-size) * 0.405);
+    border-radius: 4px;
+    pointer-events: none;
+    opacity: 0.9;
+    z-index: 9999;
+    box-shadow: 0 4px 12px rgba(100, 116, 139, 0.4),
+      inset 0 1px 0 rgba(255, 255, 255, 0.5);
+    border: 1px solid rgba(100, 116, 139, 0.3);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #374151;
+    font-weight: 700;
+    font-size: 9px;
     transform: scale(1.1);
   }
-  .ghost .digit{ font-size:9px; text-shadow: 0 1px 2px rgba(255,255,255,.8); }
+  .ghost .digit {
+    font-size: 9px;
+    text-shadow: 0 1px 2px rgba(255, 255, 255, 0.8);
+  }
 
-  /* Pastel dice colors */
-  .die[data-type="BLASTER"], .preview[data-type="BLASTER"] { background: var(--die-cyan); }
-  .die[data-type="FROST"], .preview[data-type="FROST"] { background: var(--die-blue); }
-  .die[data-type="VAMP"], .preview[data-type="VAMP"] { background: var(--die-pink); }
-  .die[data-type="CRIT"], .preview[data-type="CRIT"] { background: var(--die-orange); }
-  .die[data-type="ARC"], .preview[data-type="ARC"] { background: var(--die-lime); }
-  .die[data-type="MAGMA"], .preview[data-type="MAGMA"] { background: var(--die-red); }
-  .die[data-type="SNIPER"], .preview[data-type="SNIPER"] { background: var(--die-teal); }
+  .die[data-type="BLASTER"],
+  .preview[data-type="BLASTER"] {
+    background: var(--die-cyan);
+  }
+  .die[data-type="FROST"],
+  .preview[data-type="FROST"] {
+    background: var(--die-blue);
+  }
+  .die[data-type="VAMP"],
+  .preview[data-type="VAMP"] {
+    background: var(--die-pink);
+  }
+  .die[data-type="CRIT"],
+  .preview[data-type="CRIT"] {
+    background: var(--die-orange);
+  }
+  .die[data-type="ARC"],
+  .preview[data-type="ARC"] {
+    background: var(--die-lime);
+  }
+  .die[data-type="MAGMA"],
+  .preview[data-type="MAGMA"] {
+    background: var(--die-red);
+  }
+  .die[data-type="SNIPER"],
+  .preview[data-type="SNIPER"] {
+    background: var(--die-teal);
+  }
 
-  /* Mobile specific improvements */
   @media (max-width: 480px) {
-    .title { font-size: 14px; }
-    .pill { font-size: 9px; padding: 3px 6px; }
-    .btn { font-size: 11px; padding: 5px 8px; min-height: 32px; }
-    .store-grid { grid-template-columns: repeat(3, 70px); gap: 6px; }
-    .slot { width: 70px; height: 70px; }
-    .ghost { transform: scale(1.2); }
-    .enhancer-desc { font-size: 9px; }
-    .enhancer-icon { width: 14px; height: 14px; font-size: 6px; }
-    .center { padding: 16px 8px 60px; }
+    .title {
+      font-size: 14px;
+    }
+    .pill {
+      font-size: 9px;
+      padding: 3px 6px;
+    }
+    .btn {
+      font-size: 11px;
+      padding: 5px 8px;
+      min-height: 32px;
+    }
+    .store-grid {
+      grid-template-columns: repeat(3, 70px);
+      gap: 6px;
+    }
+    .slot {
+      width: 70px;
+      height: 70px;
+    }
+    .ghost {
+      transform: scale(1.2);
+    }
+    .enhancer-desc {
+      font-size: 9px;
+    }
+    .enhancer-icon {
+      width: 14px;
+      height: 14px;
+      font-size: 6px;
+    }
+    .center {
+      padding: 16px 8px 60px;
+    }
   }
 </style>
 </head>
 <body>
-<div class="wrap">
-  <header>
-    <div class="title">Dice Field</div>
-    <div class="pill">Drag & drop dice and enhancers</div>
-    <div class="spacer"></div>
-    <div class="pill">Merge identical pieces</div>
-  </header>
+  <div class="wrap">
+    <header>
+      <div class="title">Dice Field</div>
+      <div class="pill">Drag & drop dice and enhancers</div>
+      <div class="spacer"></div>
+      <div class="pill">Merge identical pieces</div>
+    </header>
 
-  <div class="center">
-    <div class="board-frame">
-      <div class="board-title">7×7 Game Field</div>
-      <div class="board" id="board"></div>
-    </div>
-  </div>
-
-  <div class="store-wrap">
-    <div class="store-panel">
-      <div class="store-head">Store</div>
-      <div class="store-info">
-        <div class="enhancer-desc">
-          <div class="enhancer-icon metronome">H</div>
-          <span><strong>Metronome</strong> — speeds up dice cooldown in line (H/V)</span>
-        </div>
-        <div class="enhancer-desc">
-          <div class="enhancer-icon string">↑</div>
-          <span><strong>Strings</strong> — constantly speed up dice in direction</span>
-        </div>
-        <div class="enhancer-desc">
-          <div class="enhancer-icon corner">L</div>
-          <span><strong>Corner</strong> — echoes dice actions in L-shaped area</span>
-        </div>
-        <div class="store-controls">
-          <button class="btn" id="refreshStoreBtn">🔄 Refresh</button>
-          <button class="btn" id="clearBoardBtn">🗑️ Clear</button>
-        </div>
+    <div class="center">
+      <div class="board-frame">
+        <div class="board-title">7×7 Game Field</div>
+        <div class="board" id="board"></div>
       </div>
-      <div class="store-grid" id="store"></div>
+    </div>
+
+    <div class="store-wrap">
+      <div class="store-panel">
+        <div class="store-head">Store</div>
+        <div class="store-info">
+          <div class="enhancer-desc">
+            <div class="enhancer-icon metronome">H</div>
+            <span><strong>Metronome</strong> — speeds up dice cooldown in line (H/V)</span>
+          </div>
+          <div class="enhancer-desc">
+            <div class="enhancer-icon string">↑</div>
+            <span><strong>Strings</strong> — constantly speed up dice in direction</span>
+          </div>
+          <div class="enhancer-desc">
+            <div class="enhancer-icon corner">L</div>
+            <span><strong>Corner</strong> — echoes one action of any die in its L-area</span>
+          </div>
+          <div class="store-controls">
+            <button class="btn" id="refreshStoreBtn">🔄 Refresh</button>
+            <button class="btn" id="clearBoardBtn">🗑️ Clear</button>
+          </div>
+        </div>
+        <div class="store-grid" id="store"></div>
+      </div>
     </div>
   </div>
-</div>
 
 <script>
-(function(){
-  if (window.DiceFieldMounted) { console.warn('Mounted already'); return; }
+(function () {
+  if (window.DiceFieldMounted) {
+    console.warn("Mounted already");
+    return;
+  }
   window.DiceFieldMounted = true;
 
   const GRID_SIZE = 7;
   const DIE_TYPES = [
-    {key:'BLASTER', color:'var(--die-cyan)',  label:'Blaster'},
-    {key:'FROST',   color:'var(--die-blue)',  label:'Frost'},
-    {key:'VAMP',    color:'var(--die-pink)',  label:'Vamp'},
-    {key:'CRIT',    color:'var(--die-orange)',label:'Crit'},
-    {key:'ARC',     color:'var(--die-lime)',  label:'Arc'},
-    {key:'MAGMA',   color:'var(--die-red)',   label:'Magma'},
-    {key:'SNIPER',  color:'var(--die-teal)',  label:'Sniper'},
+    { key: "BLASTER", color: "var(--die-cyan)", label: "Blaster" },
+    { key: "FROST", color: "var(--die-blue)", label: "Frost" },
+    { key: "VAMP", color: "var(--die-pink)", label: "Vamp" },
+    { key: "CRIT", color: "var(--die-orange)", label: "Crit" },
+    { key: "ARC", color: "var(--die-lime)", label: "Arc" },
+    { key: "MAGMA", color: "var(--die-red)", label: "Magma" },
+    { key: "SNIPER", color: "var(--die-teal)", label: "Sniper" },
   ];
-  const ACC_TYPES = { METRONOME:'METRONOME', STRING:'STRING', CORNER:'CORNER' };
-  const rand=(a,b)=>Math.random()*(b-a)+a;
-  const randInt=(a,b)=>Math.floor(rand(a,b+1));
+  const ACC_TYPES = { METRONOME: "METRONOME", STRING: "STRING", CORNER: "CORNER" };
+  const isMobile = "ontouchstart" in window;
 
-  function metronomeSpec(lv){ return { tickReduce:[0,0.30,0.45,0.60][lv], distance: lv }; }
-  function stringDist(lv){ return [0,2,4,6][lv]; }
-  function stringPct(lv){ return [0,.10,.15,.20][lv]; }
-  function cornerDist(lv){ return [0,1,2,3][lv]; }
+  const rand = (a, b) => Math.random() * (b - a) + a;
+  const randInt = (a, b) => Math.floor(rand(a, b + 1));
 
-  function dirArrow(d){ return ({U:'↑',D:'↓',L:'←',R:'→'})[d] || '?'; }
-  function cornerArrow(d1,d2){ return ({UD:'⌐',DU:'⌐',LR:'⌐',RL:'⌐',UL:'⌜',LU:'⌜',UR:'⌝',RU:'⌝',DL:'⌞',LD:'⌞',DR:'⌟',RD:'⌟'})[d1+d2] || 'L'; }
-  function oppositeOf(dir){ return {L:'R', R:'L', U:'D', D:'U'}[dir] || null; }
-  function rollDieValue(level){ if(level<=1) return randInt(1,2); if(level===2) return randInt(2,4); return randInt(3,6); }
+  function metronomeSpec(lv) {
+    return { tickReduce: [0, 0.3, 0.45, 0.6][lv], distance: lv };
+  }
+  function stringDist(lv) {
+    return [0, 2, 4, 6][lv];
+  }
+  function stringPct(lv) {
+    return [0, 0.1, 0.15, 0.2][lv];
+  }
+  function cornerDist(lv) {
+    return [0, 1, 2, 3][lv];
+  }
+
+  function dirArrow(d) {
+    return ({ U: "↑", D: "↓", L: "←", R: "→" })[d] || "?";
+  }
+  function cornerArrow(d1, d2) {
+    const map = {
+      UL: "⌜",
+      LU: "⌜",
+      UR: "⌝",
+      RU: "⌝",
+      DL: "⌞",
+      LD: "⌞",
+      DR: "⌟",
+      RD: "⌟",
+    };
+    return map[d1 + d2] || "L";
+  }
+  function oppositeOf(dir) {
+    return { L: "R", R: "L", U: "D", D: "U" }[dir] || null;
+  }
+  function rollDieValue(level) {
+    if (level <= 1) return randInt(1, 2);
+    if (level === 2) return randInt(2, 4);
+    return randInt(3, 6);
+  }
 
   function deepClone(obj) {
-    if (obj === null || typeof obj !== 'object') return obj;
+    if (obj === null || typeof obj !== "object") return obj;
     if (obj instanceof HTMLElement) return null;
     if (obj instanceof Array) return obj.map(deepClone);
-    
     const cloned = {};
     for (const key in obj) {
-      if (obj.hasOwnProperty(key) && key !== '_cdFillEl') {
+      if (obj.hasOwnProperty(key) && key !== "_cdFillEl") {
         cloned[key] = deepClone(obj[key]);
       }
     }
     return cloned;
   }
 
-  const boardEl=document.getElementById('board');
-  const storeEl=document.getElementById('store');
-  const refreshStoreBtn=document.getElementById('refreshStoreBtn');
-  const clearBoardBtn=document.getElementById('clearBoardBtn');
+  const boardEl = document.getElementById("board");
+  const storeEl = document.getElementById("store");
+  const refreshStoreBtn = document.getElementById("refreshStoreBtn");
+  const clearBoardBtn = document.getElementById("clearBoardBtn");
 
-  let cells=[];
-  let pieces=[];
-  let pieceIdSeq=1;
-  let storeItems=[];
-  let currentDicePool=[];
-  let dragging=null;
-  let hoverCell=null;
+  let cells = [];
+  let pieces = [];
+  let pieceIdSeq = 1;
+  let storeItems = [];
+  let currentDicePool = [];
+  let dragging = null;
+  let hoverCell = null;
 
   let coverageLayerM = [];
   let coverageLayerS = [];
@@ -626,55 +996,61 @@
   let activeSideMap = [];
   let cornerEchoMap = [];
 
-  // Mobile touch support
-  let isMobile = 'ontouchstart' in window;
-
-  function resetCoverage(){
-    coverageLayerM = Array.from({length:GRID_SIZE},()=>Array(GRID_SIZE).fill(false));
-    coverageLayerS = Array.from({length:GRID_SIZE},()=>Array(GRID_SIZE).fill(false));
-    coverageLayerC = Array.from({length:GRID_SIZE},()=>Array(GRID_SIZE).fill(false));
-    activeSideMap = Array.from({length:GRID_SIZE},()=>Array(GRID_SIZE).fill(false));
-    cornerEchoMap = Array.from({length:GRID_SIZE},()=>Array(GRID_SIZE).fill(false));
+  function resetCoverage() {
+    coverageLayerM = Array.from({ length: GRID_SIZE }, () =>
+      Array(GRID_SIZE).fill(false)
+    );
+    coverageLayerS = Array.from({ length: GRID_SIZE }, () =>
+      Array(GRID_SIZE).fill(false)
+    );
+    coverageLayerC = Array.from({ length: GRID_SIZE }, () =>
+      Array(GRID_SIZE).fill(false)
+    );
+    activeSideMap = Array.from({ length: GRID_SIZE }, () =>
+      Array(GRID_SIZE).fill(false)
+    );
+    cornerEchoMap = Array.from({ length: GRID_SIZE }, () =>
+      Array(GRID_SIZE).fill(false)
+    );
   }
-  
-  function applyCoverage(){
-    for(let r=0;r<GRID_SIZE;r++){
-      for(let c=0;c<GRID_SIZE;c++){
+
+  function applyCoverage() {
+    for (let r = 0; r < GRID_SIZE; r++) {
+      for (let c = 0; c < GRID_SIZE; c++) {
         const el = cells[r][c].el;
-        el.querySelectorAll('.coverage').forEach(n=>n.remove());
-        if(coverageLayerM[r][c]){
-          const k=document.createElement('div'); k.className='coverage metronome';
-          if(activeSideMap[r][c]) k.classList.add('active-side');
+        el.querySelectorAll(".coverage").forEach((n) => n.remove());
+        if (coverageLayerM[r][c]) {
+          const k = document.createElement("div");
+          k.className = "coverage metronome";
+          if (activeSideMap[r][c]) k.classList.add("active-side");
           el.appendChild(k);
         }
-        if(coverageLayerS[r][c]){
-          const k=document.createElement('div'); k.className='coverage string';
-          const stringPiece = findStringAffectingCell(r, c);
-          if(stringPiece) {
-            k.classList.add(`level-${stringPiece.level||1}`);
-          }
+        if (coverageLayerS[r][c]) {
+          const k = document.createElement("div");
+          k.className = "coverage string";
+          const sp = findStringAffectingCell(r, c);
+          if (sp) k.classList.add(`level-${sp.level || 1}`);
           el.appendChild(k);
         }
-        if(coverageLayerC[r][c]){
-          const k=document.createElement('div'); k.className='coverage corner';
-          const cornerPiece = findCornerAffectingCell(r, c);
-          if(cornerPiece) {
-            k.classList.add(`level-${cornerPiece.level||1}`);
-          }
-          if(cornerEchoMap[r][c]) k.classList.add('corner-echo');
+        if (coverageLayerC[r][c]) {
+          const k = document.createElement("div");
+          k.className = "coverage corner";
+          const cp = findCornerAffectingCell(r, c);
+          if (cp) k.classList.add(`level-${cp.level || 1}`);
+          if (cornerEchoMap[r][c]) k.classList.add("corner-echo");
           el.appendChild(k);
         }
       }
     }
   }
-  
+
   function findStringAffectingCell(r, c) {
-    for(const p of pieces) {
-      if(p.kind==='ACC' && p.accType===ACC_TYPES.STRING) {
-        const dist = stringDist(p.level||1);
-        const line=lineCellsFrom(p.r,p.c,p.dir,dist);
-        for(const cell of line) {
-          if(cell.r === r && cell.c === c) return p;
+    for (const p of pieces) {
+      if (p.kind === "ACC" && p.accType === ACC_TYPES.STRING && !p.held) {
+        const dist = stringDist(p.level || 1);
+        const line = lineCellsFrom(p.r, p.c, p.dir, dist);
+        for (const cell of line) {
+          if (cell.r === r && cell.c === c) return p;
         }
       }
     }
@@ -682,43 +1058,43 @@
   }
 
   function findCornerAffectingCell(r, c) {
-    for(const p of pieces) {
-      if(p.kind==='ACC' && p.accType===ACC_TYPES.CORNER) {
-        const dist = cornerDist(p.level||1);
-        const corner=cornerCellsFrom(p.r,p.c,p.dir1,p.dir2,dist);
-        for(const cell of corner) {
-          if(cell.r === r && cell.c === c) return p;
+    for (const p of pieces) {
+      if (p.kind === "ACC" && p.accType === ACC_TYPES.CORNER && !p.held) {
+        const dist = cornerDist(p.level || 1);
+        const corner = cornerCellsFrom(p.r, p.c, p.dir1, p.dir2, dist);
+        for (const cell of corner) {
+          if (cell.r === r && cell.c === c) return p;
         }
       }
     }
     return null;
   }
 
-  function recomputeCoverage(){
+  function recomputeCoverage() {
     resetCoverage();
-    for(const p of pieces){
-      if(p.kind==='ACC' && p.accType===ACC_TYPES.METRONOME){
-        const spec=metronomeSpec(p.level||1);
+    for (const p of pieces) {
+      if (p.kind === "ACC" && p.accType === ACC_TYPES.METRONOME) {
+        const spec = metronomeSpec(p.level || 1);
         const dist = spec.distance;
-        const all=[];
-        if(p.orientation==='H'){
-          all.push(...lineCellsFrom(p.r,p.c,'L',dist));
-          all.push(...lineCellsFrom(p.r,p.c,'R',dist));
-        }else{
-          all.push(...lineCellsFrom(p.r,p.c,'U',dist));
-          all.push(...lineCellsFrom(p.r,p.c,'D',dist));
+        const all = [];
+        if (p.orientation === "H") {
+          all.push(...lineCellsFrom(p.r, p.c, "L", dist));
+          all.push(...lineCellsFrom(p.r, p.c, "R", dist));
+        } else {
+          all.push(...lineCellsFrom(p.r, p.c, "U", dist));
+          all.push(...lineCellsFrom(p.r, p.c, "D", dist));
         }
-        for(const cell of all){ coverageLayerM[cell.r][cell.c]=true; }
+        for (const cell of all) coverageLayerM[cell.r][cell.c] = true;
       }
-      if(p.kind==='ACC' && p.accType===ACC_TYPES.STRING){
-        const dist = stringDist(p.level||1);
-        const line=lineCellsFrom(p.r,p.c,p.dir,dist);
-        for(const cell of line){ coverageLayerS[cell.r][cell.c]=true; }
+      if (p.kind === "ACC" && p.accType === ACC_TYPES.STRING) {
+        const dist = stringDist(p.level || 1);
+        const line = lineCellsFrom(p.r, p.c, p.dir, dist);
+        for (const cell of line) coverageLayerS[cell.r][cell.c] = true;
       }
-      if(p.kind==='ACC' && p.accType===ACC_TYPES.CORNER){
-        const dist = cornerDist(p.level||1);
-        const corner=cornerCellsFrom(p.r,p.c,p.dir1,p.dir2,dist);
-        for(const cell of corner){ coverageLayerC[cell.r][cell.c]=true; }
+      if (p.kind === "ACC" && p.accType === ACC_TYPES.CORNER) {
+        const dist = cornerDist(p.level || 1);
+        const corner = cornerCellsFrom(p.r, p.c, p.dir1, p.dir2, dist);
+        for (const cell of corner) coverageLayerC[cell.r][cell.c] = true;
       }
     }
     applyCoverage();
@@ -726,152 +1102,189 @@
 
   function getEventCoords(e) {
     if (e.touches && e.touches[0]) {
-      return { x: e.touches[0].clientX, y: e.touches[0].clientY, pageX: e.touches[0].pageX, pageY: e.touches[0].pageY };
+      return {
+        x: e.touches[0].clientX,
+        y: e.touches[0].clientY,
+        pageX: e.touches[0].pageX,
+        pageY: e.touches[0].pageY,
+      };
     }
     if (e.changedTouches && e.changedTouches[0]) {
-      return { x: e.changedTouches[0].clientX, y: e.changedTouches[0].clientY, pageX: e.changedTouches[0].pageX, pageY: e.changedTouches[0].pageY };
+      return {
+        x: e.changedTouches[0].clientX,
+        y: e.changedTouches[0].clientY,
+        pageX: e.changedTouches[0].pageX,
+        pageY: e.changedTouches[0].pageY,
+      };
     }
     return { x: e.clientX, y: e.clientY, pageX: e.pageX, pageY: e.pageY };
   }
 
   function findCellAt(x, y) {
-    const cellElements = document.querySelectorAll('.cell');
-    let bestCell = null;
-    let minDistance = Infinity;
-
+    const cellElements = document.querySelectorAll(".cell");
+    let best = null;
+    let minD = Infinity;
     for (const cellEl of cellElements) {
       const rect = cellEl.getBoundingClientRect();
-      const centerX = rect.left + rect.width / 2;
-      const centerY = rect.top + rect.height / 2;
-      
+      const cx = rect.left + rect.width / 2;
+      const cy = rect.top + rect.height / 2;
       const margin = isMobile ? 12 : 4;
-      if (x >= rect.left - margin && x <= rect.right + margin && 
-          y >= rect.top - margin && y <= rect.bottom + margin) {
-        const distance = Math.sqrt((x - centerX) ** 2 + (y - centerY) ** 2);
-        if (distance < minDistance) {
-          minDistance = distance;
-          bestCell = cellEl;
+      if (
+        x >= rect.left - margin &&
+        x <= rect.right + margin &&
+        y >= rect.top - margin &&
+        y <= rect.bottom + margin
+      ) {
+        const d = Math.hypot(x - cx, y - cy);
+        if (d < minD) {
+          minD = d;
+          best = cellEl;
         }
       }
     }
-
-    return bestCell;
+    return best;
   }
 
-  function makeCell(r,c){
-    const el=document.createElement('div');
-    el.className='cell';
-    el.dataset.r=r; el.dataset.c=c;
-    
-    // Только mouse события для desktop
+  function makeCell(r, c) {
+    const el = document.createElement("div");
+    el.className = "cell";
+    el.dataset.r = r;
+    el.dataset.c = c;
+
     if (!isMobile) {
-      el.addEventListener('mouseenter', ()=>{
-        if(dragging){ hoverCell={r,c,el}; el.classList.add('drag-over'); }
+      el.addEventListener("mouseenter", () => {
+        if (dragging) {
+          hoverCell = { r, c, el };
+          el.classList.add("drag-over");
+        }
       });
-      el.addEventListener('mouseleave', ()=>{
-        if(hoverCell && hoverCell.el===el){ el.classList.remove('drag-over'); hoverCell=null; }
+      el.addEventListener("mouseleave", () => {
+        if (hoverCell && hoverCell.el === el) {
+          el.classList.remove("drag-over");
+          hoverCell = null;
+        }
       });
-      el.addEventListener('mousedown', (e)=>{
-        const p=getPieceAt(r,c); if(!p) return;
-        beginDragFromBoard(p,r,c,e);
+      el.addEventListener("mousedown", (e) => {
+        const p = getPieceAt(r, c);
+        if (!p) return;
+        beginDragFromBoard(p, r, c, e);
       });
     }
-    
+
     return el;
   }
 
-  function renderBoard(){
-    boardEl.innerHTML='';
-    boardEl.style.setProperty('--size', GRID_SIZE);
-    for(let r=0;r<GRID_SIZE;r++){
-      for(let c=0;c<GRID_SIZE;c++){
-        const el=makeCell(r,c);
+  function renderBoard() {
+    boardEl.innerHTML = "";
+    boardEl.style.setProperty("--size", GRID_SIZE);
+    for (let r = 0; r < GRID_SIZE; r++) {
+      for (let c = 0; c < GRID_SIZE; c++) {
+        const el = makeCell(r, c);
         boardEl.appendChild(el);
-        cells[r][c].el=el;
-        updateCellVisual(r,c);
+        cells[r][c].el = el;
+        updateCellVisual(r, c);
       }
     }
     recomputeCoverage();
   }
-  function updateCellVisual(r,c){
-    const cell=cells[r][c], el=cell.el;
-    el.classList.toggle('occupied', !!cell.piece);
-    const old=el.querySelector('.piece'); if(old) old.remove();
-    if(cell.piece){ el.appendChild(renderPieceNode(cell.piece)); }
+
+  function updateCellVisual(r, c) {
+    const cell = cells[r][c];
+    const el = cell.el;
+    el.classList.toggle("occupied", !!cell.piece);
+    const old = el.querySelector(".piece");
+    if (old) old.remove();
+    if (cell.piece) el.appendChild(renderPieceNode(cell.piece));
   }
 
-  function renderPieceNode(p){
-    const node=document.createElement('div');
-    node.classList.add('piece');
-    if(p.kind==='DIE'){
-      node.classList.add('die');
-      node.setAttribute('data-type', p.dieType);
-      const digit=document.createElement('div');
-      digit.className='digit'; digit.textContent=String(p.value ?? rollDieValue(p.level||1));
+  // IMPORTANT FIX: global pointer capture for touch to avoid "stuck ghost"
+  function addGlobalTouchDragListeners() {
+    document.addEventListener("touchmove", onDragMove, { passive: false });
+    document.addEventListener("touchend", onDragEnd, { passive: false });
+    document.addEventListener("touchcancel", onDragEnd, { passive: false });
+  }
+  function removeGlobalTouchDragListeners() {
+    document.removeEventListener("touchmove", onDragMove);
+    document.removeEventListener("touchend", onDragEnd);
+    document.removeEventListener("touchcancel", onDragEnd);
+  }
+
+  function renderPieceNode(p) {
+    const node = document.createElement("div");
+    node.classList.add("piece");
+    if (p.kind === "DIE") {
+      node.classList.add("die");
+      node.setAttribute("data-type", p.dieType);
+      const digit = document.createElement("div");
+      digit.className = "digit";
+      digit.textContent = String(p.value ?? rollDieValue(p.level || 1));
       node.appendChild(digit);
-      
-      const bar=document.createElement('div'); bar.className='cdbar';
-      const fill=document.createElement('div'); fill.className='fill';
-      bar.appendChild(fill); node.appendChild(bar);
-      
+
+      const bar = document.createElement("div");
+      bar.className = "cdbar";
+      const fill = document.createElement("div");
+      fill.className = "fill";
+      bar.appendChild(fill);
+      node.appendChild(bar);
+
       updateCooldownReference(p, fill);
-    }else{
-      node.classList.add('acc', p.accType.toLowerCase());
-      const mark=document.createElement('div');
-      mark.style.fontWeight='700';
-      if(p.accType===ACC_TYPES.METRONOME){
-        mark.textContent=(p.orientation==='H'?'H':'V');
-      }else if(p.accType===ACC_TYPES.STRING){
-        mark.textContent=dirArrow(p.dir);
-      }else if(p.accType===ACC_TYPES.CORNER){
-        mark.textContent=cornerArrow(p.dir1,p.dir2);
+    } else {
+      node.classList.add("acc", p.accType.toLowerCase());
+      const mark = document.createElement("div");
+      mark.style.fontWeight = "700";
+      if (p.accType === ACC_TYPES.METRONOME) {
+        mark.textContent = p.orientation === "H" ? "H" : "V";
+      } else if (p.accType === ACC_TYPES.STRING) {
+        mark.textContent = dirArrow(p.dir);
+      } else if (p.accType === ACC_TYPES.CORNER) {
+        mark.textContent = cornerArrow(p.dir1, p.dir2);
       }
       node.appendChild(mark);
-      
-      if(p.accType===ACC_TYPES.STRING && !p.held) {
-        node.classList.add('field-pulse');
-      }
-      if(p.accType===ACC_TYPES.CORNER && !p.held) {
-        node.classList.add('field-pulse');
+
+      if (p.accType !== ACC_TYPES.METRONOME && !p.held) {
+        node.classList.add("field-pulse");
       }
     }
-    if(p.held) node.classList.add('inactive');
-    
-    // Mouse события для desktop
+    if (p.held) node.classList.add("inactive");
+
     if (!isMobile) {
-      node.addEventListener('mousedown', (e)=>{
+      node.addEventListener("mousedown", (e) => {
         e.stopPropagation();
-        const pos=findPiece(p.id); if(!pos) return;
-        beginDragFromBoard(p,pos.r,pos.c,e);
+        const pos = findPiece(p.id);
+        if (!pos) return;
+        beginDragFromBoard(p, pos.r, pos.c, e);
       });
     }
 
-    // Touch события для мобильных - ИСПРАВЛЕННАЯ ВЕРСИЯ
-    node.addEventListener('touchstart', handleTouchStart, { passive: false });
-    
-    function handleTouchStart(e) {
-      e.preventDefault();
-      e.stopPropagation();
-      e.stopImmediatePropagation();
-      
-      const pos=findPiece(p.id); 
-      if(!pos) return;
-      
-      // КРИТИЧЕСКИ ВАЖНО: полностью очищаем состояние ячейки ПЕРЕД началом drag
-      cells[pos.r][pos.c].piece = null;
-      cells[pos.r][pos.c].el.classList.remove('occupied');
-      
-      // Удаляем визуальный элемент немедленно
-      const cellEl = cells[pos.r][pos.c].el;
-      const pieceEl = cellEl.querySelector('.piece');
-      if (pieceEl) pieceEl.remove();
-      
-      // Убираем элемент из массива pieces (чтобы не было дублирования)
-      pieces = pieces.filter(piece => piece.id !== p.id);
-      
-      // Теперь начинаем drag с уже очищенным состоянием
-      beginDragFromBoard(p, pos.r, pos.c, e);
-    }
+    // FINAL FIX (mobile): start drag on touchstart, fully clear cell and capture movement
+    node.addEventListener(
+      "touchstart",
+      (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        e.stopImmediatePropagation();
+
+        const pos = findPiece(p.id);
+        if (!pos) return;
+
+        // Clear cell state BEFORE starting drag
+        const cell = cells[pos.r][pos.c];
+        if (cell.piece && cell.piece.id === p.id) {
+          cell.piece = null;
+          cell.el.classList.remove("occupied");
+        }
+        const old = cell.el.querySelector(".piece");
+        if (old) old.remove();
+
+        // Remove from pieces to avoid duplicates
+        pieces = pieces.filter((x) => x.id !== p.id);
+
+        // Start drag and capture touch events globally
+        beginDragFromBoard(p, pos.r, pos.c, e, { skipClear: true });
+        addGlobalTouchDragListeners();
+      },
+      { passive: false }
+    );
 
     return node;
   }
@@ -880,114 +1293,156 @@
     piece._cdFillEl = fillElement;
   }
 
-  function rollDicePool(){
-    const shuffled=[...DIE_TYPES].sort(()=>Math.random()-.5);
-    currentDicePool=shuffled.slice(0,5);
+  function rollDicePool() {
+    const shuffled = [...DIE_TYPES].sort(() => Math.random() - 0.5);
+    currentDicePool = shuffled.slice(0, 5);
   }
-  function makeStoreDie(t){
-    return { kind:'DIE', dieType:t.key, dieLabel:t.label, dieColor:t.color, value:randInt(1,2), baseCD:3.5, cd:9999, level:1 };
+  function makeStoreDie(t) {
+    return {
+      kind: "DIE",
+      dieType: t.key,
+      dieLabel: t.label,
+      dieColor: t.color,
+      value: randInt(1, 2),
+      baseCD: 3.5,
+      cd: 9999,
+      level: 1,
+    };
   }
-  function makeStoreAcc(type){
-    if(type===ACC_TYPES.METRONOME){
-      return { kind:'ACC', accType:type, level:1, orientation:(Math.random()<0.5?'H':'V') };
-    }else if(type===ACC_TYPES.STRING){
-      return { kind:'ACC', accType:type, level:1, dir:['U','D','L','R'][randInt(0,3)] };
-    }else if(type===ACC_TYPES.CORNER){
-      const dirs = [['U','L'],['U','R'],['D','L'],['D','R']];
-      const chosenDirs = dirs[randInt(0,3)];
-      return { kind:'ACC', accType:type, level:1, dir1:chosenDirs[0], dir2:chosenDirs[1] };
+  function makeStoreAcc(type) {
+    if (type === ACC_TYPES.METRONOME) {
+      return {
+        kind: "ACC",
+        accType: type,
+        level: 1,
+        orientation: Math.random() < 0.5 ? "H" : "V",
+      };
+    } else if (type === ACC_TYPES.STRING) {
+      return {
+        kind: "ACC",
+        accType: type,
+        level: 1,
+        dir: ["U", "D", "L", "R"][randInt(0, 3)],
+      };
+    } else {
+      const dirs = [
+        ["U", "L"],
+        ["U", "R"],
+        ["D", "L"],
+        ["D", "R"],
+      ];
+      const chosen = dirs[randInt(0, 3)];
+      return {
+        kind: "ACC",
+        accType: type,
+        level: 1,
+        dir1: chosen[0],
+        dir2: chosen[1],
+      };
     }
   }
-  
-  function rollStore(){
-    storeItems=[];
+
+  function rollStore() {
+    storeItems = [];
     const accTypes = [ACC_TYPES.METRONOME, ACC_TYPES.STRING, ACC_TYPES.CORNER];
-    const accType = accTypes[randInt(0,2)];
+    const accType = accTypes[randInt(0, 2)];
     storeItems.push(makeStoreAcc(accType));
-    for(let i=0;i<2;i++){
-      const t=currentDicePool[randInt(0,currentDicePool.length-1)];
+    for (let i = 0; i < 2; i++) {
+      const t = currentDicePool[randInt(0, currentDicePool.length - 1)];
       storeItems.push(makeStoreDie(t));
     }
     renderStore();
   }
-  
-  function renderStore(){
-    storeEl.innerHTML='';
-    storeItems.forEach((it,idx)=>{
-      const slot=document.createElement('div');
-      slot.className='slot';
-      slot.dataset.index=idx;
 
-      const label=document.createElement('div');
-      label.className='label';
+  function renderStore() {
+    storeEl.innerHTML = "";
+    storeItems.forEach((it, idx) => {
+      const slot = document.createElement("div");
+      slot.className = "slot";
+      slot.dataset.index = idx;
+
+      const label = document.createElement("div");
+      label.className = "label";
       label.textContent = it
-        ? (it.kind==='DIE' ? `${it.dieLabel} • Lv${it.level||1}` :
-            (it.accType===ACC_TYPES.METRONOME?`Metro (${it.orientation}) • Lv${it.level||1}`:
-            it.accType===ACC_TYPES.STRING?`String (${dirArrow(it.dir)}) • Lv${it.level||1}`:
-            `Corner (${cornerArrow(it.dir1,it.dir2)}) • Lv${it.level||1}`))
-        : 'Empty';
+        ? it.kind === "DIE"
+          ? `${it.dieLabel} • Lv${it.level || 1}`
+          : it.accType === ACC_TYPES.METRONOME
+          ? `Metro (${it.orientation}) • Lv${it.level || 1}`
+          : it.accType === ACC_TYPES.STRING
+          ? `String (${dirArrow(it.dir)}) • Lv${it.level || 1}`
+          : `Corner (${cornerArrow(it.dir1, it.dir2)}) • Lv${it.level || 1}`
+        : "Empty";
       slot.appendChild(label);
 
-      const prev=document.createElement('div'); prev.className='preview';
-      if(it){
-        if(it.kind==='DIE'){
-          prev.setAttribute('data-type', it.dieType);
-          prev.classList.add('die');
-          const d=document.createElement('div'); d.style.fontSize='16px'; d.style.fontWeight='700';
-          d.textContent=String(it.value);
+      const prev = document.createElement("div");
+      prev.className = "preview";
+      if (it) {
+        if (it.kind === "DIE") {
+          prev.setAttribute("data-type", it.dieType);
+          prev.classList.add("die");
+          const d = document.createElement("div");
+          d.style.fontSize = "16px";
+          d.style.fontWeight = "700";
+          d.textContent = String(it.value);
           prev.appendChild(d);
-        }else{
-          prev.classList.add('acc', it.accType.toLowerCase());
-          const t=document.createElement('div'); t.style.fontWeight='700';
-          if(it.accType===ACC_TYPES.METRONOME){
-            t.textContent = (it.orientation==='H'?'H':'V');
-          }else if(it.accType===ACC_TYPES.STRING){
+        } else {
+          prev.classList.add("acc", it.accType.toLowerCase());
+          const t = document.createElement("div");
+          t.style.fontWeight = "700";
+          if (it.accType === ACC_TYPES.METRONOME) {
+            t.textContent = it.orientation === "H" ? "H" : "V";
+          } else if (it.accType === ACC_TYPES.STRING) {
             t.textContent = dirArrow(it.dir);
-          }else if(it.accType===ACC_TYPES.CORNER){
-            t.textContent = cornerArrow(it.dir1,it.dir2);
+          } else {
+            t.textContent = cornerArrow(it.dir1, it.dir2);
           }
           prev.appendChild(t);
         }
-        
-        // Mouse events для desktop
+
         if (!isMobile) {
-          slot.addEventListener('mousedown', (e)=> {
-            beginDragFromStore(it,idx,e);
+          slot.addEventListener("mousedown", (e) => {
+            beginDragFromStore(it, idx, e);
           });
         }
-
-        // Touch события для мобильных
-        slot.addEventListener('touchstart', (e)=> {
-          e.preventDefault();
-          beginDragFromStore(it,idx,e);
-        }, { passive: false });
-      }else{
-        prev.style.background='linear-gradient(135deg,#f1f5f9,#cbd5e1)';
+        slot.addEventListener(
+          "touchstart",
+          (e) => {
+            e.preventDefault();
+            beginDragFromStore(it, idx, e);
+            addGlobalTouchDragListeners();
+          },
+          { passive: false }
+        );
+      } else {
+        prev.style.background = "linear-gradient(135deg,#f1f5f9,#cbd5e1)";
       }
       slot.appendChild(prev);
       storeEl.appendChild(slot);
     });
   }
 
-  function createGhost(item, pageX, pageY){
-    const g=document.createElement('div');
-    g.className='ghost';
-    g.style.left = pageX + 'px';
-    g.style.top  = pageY + 'px';
-    if(item.kind==='DIE'){
-      g.setAttribute('data-type', item.dieType);
-      g.classList.add('die');
-      const d=document.createElement('div'); d.className='digit'; d.textContent=String(item.value ?? rollDieValue(item.level||1));
+  function createGhost(item, pageX, pageY) {
+    const g = document.createElement("div");
+    g.className = "ghost";
+    g.style.left = pageX + "px";
+    g.style.top = pageY + "px";
+    if (item.kind === "DIE") {
+      g.setAttribute("data-type", item.dieType);
+      g.classList.add("die");
+      const d = document.createElement("div");
+      d.className = "digit";
+      d.textContent = String(item.value ?? rollDieValue(item.level || 1));
       g.appendChild(d);
-    }else{
-      g.classList.add('acc', item.accType.toLowerCase());
-      const t=document.createElement('div'); t.style.fontWeight='700';
-      if(item.accType===ACC_TYPES.METRONOME){
-        t.textContent = (item.orientation==='H'?'H':'V');
-      }else if(item.accType===ACC_TYPES.STRING){
+    } else {
+      g.classList.add("acc", item.accType.toLowerCase());
+      const t = document.createElement("div");
+      t.style.fontWeight = "700";
+      if (item.accType === ACC_TYPES.METRONOME) {
+        t.textContent = item.orientation === "H" ? "H" : "V";
+      } else if (item.accType === ACC_TYPES.STRING) {
         t.textContent = dirArrow(item.dir);
-      }else if(item.accType===ACC_TYPES.CORNER){
-        t.textContent = cornerArrow(item.dir1,item.dir2);
+      } else {
+        t.textContent = cornerArrow(item.dir1, item.dir2);
       }
       g.appendChild(t);
     }
@@ -995,128 +1450,141 @@
     return g;
   }
 
-  function beginDragFromStore(item,index,e){
+  function beginDragFromStore(item, index, e) {
     e.preventDefault();
     const coords = getEventCoords(e);
-    dragging={src:'store', item:deepClone(item), originIndex:index, ghost:createGhost(item,coords.pageX,coords.pageY)};
-    setHeld(dragging.item,true);
-    
-    if(isMobile) {
-      document.addEventListener('touchmove', onDragMove, { passive: false });
-      document.addEventListener('touchend', onDragEnd, { passive: false });
-    } else {
-      document.addEventListener('mousemove', onDragMove);
-      document.addEventListener('mouseup', onDragEnd);
-    }
-  }
+    dragging = {
+      src: "store",
+      item: deepClone(item),
+      originIndex: index,
+      ghost: createGhost(item, coords.pageX, coords.pageY),
+    };
+    setHeld(dragging.item, true);
 
-  function beginDragFromBoard(p,r,c,e){
-    e.preventDefault();
-    const coords = getEventCoords(e);
-    dragging={src:'board', item:p, originCell:{r,c}, ghost:createGhost(p,coords.pageX,coords.pageY)};
-    setHeld(dragging.item,true);
-    
-    // НЕ очищаем ячейку здесь - она уже очищена в handleTouchStart для мобильных
-    // Для desktop очищаем как обычно
     if (!isMobile) {
+      document.addEventListener("mousemove", onDragMove);
+      document.addEventListener("mouseup", onDragEnd);
+    }
+  }
+
+  function beginDragFromBoard(p, r, c, e, opts = {}) {
+    e.preventDefault();
+    const coords = getEventCoords(e);
+    dragging = {
+      src: "board",
+      item: p,
+      originCell: { r, c },
+      ghost: createGhost(p, coords.pageX, coords.pageY),
+    };
+    setHeld(dragging.item, true);
+
+    // For desktop, clear cell here. For mobile, it was cleared before calling this.
+    if (!isMobile && !opts.skipClear) {
       cells[r][c].piece = null;
-      updateCellVisual(r,c);
+      updateCellVisual(r, c);
     }
-    
-    if(isMobile) {
-      document.addEventListener('touchmove', onDragMove, { passive: false });
-      document.addEventListener('touchend', onDragEnd, { passive: false });
-    } else {
-      document.addEventListener('mousemove', onDragMove);
-      document.addEventListener('mouseup', onDragEnd);
+
+    if (!isMobile) {
+      document.addEventListener("mousemove", onDragMove);
+      document.addEventListener("mouseup", onDragEnd);
     }
   }
 
-  function onDragMove(e){
-    if(!dragging) return;
+  function onDragMove(e) {
+    if (!dragging) return;
     e.preventDefault();
     const coords = getEventCoords(e);
-    dragging.ghost.style.left = coords.pageX + 'px';
-    dragging.ghost.style.top  = coords.pageY + 'px';
-    
+    dragging.ghost.style.left = coords.pageX + "px";
+    dragging.ghost.style.top = coords.pageY + "px";
+
     const cellEl = findCellAt(coords.x, coords.y);
-    
-    if(hoverCell && (!cellEl || hoverCell.el!==cellEl)){
-      hoverCell.el.classList.remove('drag-over'); hoverCell=null;
+    if (hoverCell && (!cellEl || hoverCell.el !== cellEl)) {
+      hoverCell.el.classList.remove("drag-over");
+      hoverCell = null;
     }
-    if(cellEl && !isMobile){
-      const r=+cellEl.dataset.r, c=+cellEl.dataset.c;
-      hoverCell={r,c,el:cellEl}; cellEl.classList.add('drag-over');
+    if (cellEl && !isMobile) {
+      const r = +cellEl.dataset.r,
+        c = +cellEl.dataset.c;
+      hoverCell = { r, c, el: cellEl };
+      cellEl.classList.add("drag-over");
     }
   }
 
-  function onDragEnd(e){
-    if(!dragging) return;
+  function onDragEnd(e) {
+    if (!dragging) return;
     e.preventDefault();
-    
-    if(isMobile) {
-      document.removeEventListener('touchmove', onDragMove);
-      document.removeEventListener('touchend', onDragEnd);
+
+    if (isMobile) {
+      removeGlobalTouchDragListeners();
     } else {
-      document.removeEventListener('mousemove', onDragMove);
-      document.removeEventListener('mouseup', onDragEnd);
+      document.removeEventListener("mousemove", onDragMove);
+      document.removeEventListener("mouseup", onDragEnd);
     }
-    
+
     const coords = getEventCoords(e);
     const cellEl = findCellAt(coords.x, coords.y);
-    
-    if(cellEl){
-      const r=+cellEl.dataset.r, c=+cellEl.dataset.c;
-      handleDropToCell(r,c);
+
+    if (cellEl) {
+      const r = +cellEl.dataset.r,
+        c = +cellEl.dataset.c;
+      handleDropToCell(r, c);
     } else {
       handleDropOutsideBoard();
     }
-    
-    dragging.ghost.remove(); dragging=null;
-    if(hoverCell){ hoverCell.el.classList.remove('drag-over'); hoverCell=null; }
+
+    dragging.ghost.remove();
+    dragging = null;
+    if (hoverCell) {
+      hoverCell.el.classList.remove("drag-over");
+      hoverCell = null;
+    }
   }
 
   function handleDropOutsideBoard() {
-    if (dragging.src === 'board' && dragging.originCell) {
+    if (dragging.src === "board" && dragging.originCell) {
       placePieceAt(dragging.item, dragging.originCell.r, dragging.originCell.c, false);
       recomputeCoverage();
-    } else if (dragging.src === 'store') {
+    } else if (dragging.src === "store") {
       storeItems[dragging.originIndex] = dragging.item;
       renderStore();
     }
   }
 
-  function setHeld(item,held){ item.held=!!held; }
+  function setHeld(item, held) {
+    item.held = !!held;
+  }
 
-  function handleDropToCell(r,c){
-    const cell=cells[r][c];
-    const item=dragging.item;
+  function handleDropToCell(r, c) {
+    const cell = cells[r][c];
+    const item = dragging.item;
 
-    if(!cell.piece){
-      placePieceAt(item,r,c,true);
-      if(dragging.src==='store'){ storeItems[dragging.originIndex]=null; renderStore(); }
+    if (!cell.piece) {
+      placePieceAt(item, r, c, true);
+      if (dragging.src === "store") {
+        storeItems[dragging.originIndex] = null;
+        renderStore();
+      }
       recomputeCoverage();
       return;
     }
 
-    const target=cell.piece;
-    if(strictCanMerge(target,item)){
+    const target = cell.piece;
+    if (strictCanMerge(target, item)) {
       const upgraded = strictUpgrade(target, item);
-      
-      if(dragging.src==='board'){ 
-        pieces = pieces.filter(pp=>pp.id!==item.id); 
+      if (dragging.src === "board") {
+        pieces = pieces.filter((pp) => pp.id !== item.id);
       }
-      if(dragging.src==='store'){ 
-        storeItems[dragging.originIndex]=null; renderStore(); 
+      if (dragging.src === "store") {
+        storeItems[dragging.originIndex] = null;
+        renderStore();
       }
-      
-      placePieceAt(upgraded,r,c,true);
+      placePieceAt(upgraded, r, c, true);
       recomputeCoverage();
       return;
     }
 
-    if(dragging.src==='board'){
-      const origin=dragging.originCell;
+    if (dragging.src === "board") {
+      const origin = dragging.originCell;
       placePieceAt(item, origin.r, origin.c, false);
       recomputeCoverage();
     } else {
@@ -1125,285 +1593,316 @@
     }
   }
 
-  function strictCanMerge(a,b){
-    if(!a || !b) return false;
-    if(a.kind!==b.kind) return false;
-    if((a.level||1)!==(b.level||1)) return false;
-    if((a.level||1)>=3) return false;
+  function strictCanMerge(a, b) {
+    if (!a || !b) return false;
+    if (a.kind !== b.kind) return false;
+    if ((a.level || 1) !== (b.level || 1)) return false;
+    if ((a.level || 1) >= 3) return false;
 
-    if(a.kind==='DIE'){
-      return a.dieType===b.dieType;
-    }else{
-      if(a.accType!==b.accType) return false;
-      if(a.accType===ACC_TYPES.METRONOME){
-        return a.orientation===b.orientation;
-      }else if(a.accType===ACC_TYPES.STRING){
-        return a.dir===b.dir;
-      }else if(a.accType===ACC_TYPES.CORNER){
-        return (a.dir1===b.dir1 && a.dir2===b.dir2) || (a.dir1===b.dir2 && a.dir2===b.dir1);
+    if (a.kind === "DIE") {
+      return a.dieType === b.dieType;
+    } else {
+      if (a.accType !== b.accType) return false;
+      if (a.accType === ACC_TYPES.METRONOME) {
+        return a.orientation === b.orientation;
+      } else if (a.accType === ACC_TYPES.STRING) {
+        return a.dir === b.dir;
+      } else if (a.accType === ACC_TYPES.CORNER) {
+        return (
+          (a.dir1 === b.dir1 && a.dir2 === b.dir2) ||
+          (a.dir1 === b.dir2 && a.dir2 === b.dir1)
+        );
       }
     }
   }
 
-  function strictUpgrade(target, dragged){
+  function strictUpgrade(target, dragged) {
     const res = deepClone(target);
-    res.level = Math.min(3, (target.level||1)+1);
-    if(res.kind==='DIE'){
-      res.baseCD = Math.max(2.2, (target.baseCD??3.5) - 0.2);
-      res.value  = rollDieValue(res.level);
+    res.level = Math.min(3, (target.level || 1) + 1);
+    if (res.kind === "DIE") {
+      res.baseCD = Math.max(2.2, (target.baseCD ?? 3.5) - 0.2);
+      res.value = rollDieValue(res.level);
       res._cdFillEl = null;
     }
     return res;
   }
 
-  function placePieceAt(p, r, c, activate){
+  function placePieceAt(p, r, c, activate) {
     setHeld(p, false);
     p.id ??= pieceIdSeq++;
-    p.r=r; p.c=c;
-    if(p.kind==='DIE'){
-      if(activate) {
+    p.r = r;
+    p.c = c;
+    if (p.kind === "DIE") {
+      if (activate) {
         p.cd = p.baseCD ?? 3.5;
       } else {
         p.cd = p.cd ?? p.baseCD ?? 3.5;
       }
-      p.value = p.value ?? rollDieValue(p.level||1);
+      p.value = p.value ?? rollDieValue(p.level || 1);
     }
-    
-    pieces = pieces.filter(x=>x.id!==p.id);
+
+    pieces = pieces.filter((x) => x.id !== p.id);
     pieces.push(p);
-    
-    cells[r][c].piece=p;
-    updateCellVisual(r,c);
+
+    cells[r][c].piece = p;
+    updateCellVisual(r, c);
   }
-  
-  function getPieceAt(r,c){ return cells[r][c].piece || null; }
-  function findPiece(id){
-    for(let r=0;r<GRID_SIZE;r++){
-      for(let c=0;c<GRID_SIZE;c++){
-        const p=cells[r][c].piece;
-        if(p && p.id===id) return {r,c};
+
+  function getPieceAt(r, c) {
+    return cells[r][c].piece || null;
+  }
+  function findPiece(id) {
+    for (let r = 0; r < GRID_SIZE; r++) {
+      for (let c = 0; c < GRID_SIZE; c++) {
+        const p = cells[r][c].piece;
+        if (p && p.id === id) return { r, c };
       }
     }
     return null;
   }
 
   function onDiceActivation(dieR, dieC) {
-    // Metronome logic
-    for(const m of pieces) {
-      if(m.kind==='ACC' && m.accType===ACC_TYPES.METRONOME && !m.held) {
-        const spec = metronomeSpec(m.level||1);
+    // Metronome
+    for (const m of pieces) {
+      if (m.kind === "ACC" && m.accType === ACC_TYPES.METRONOME && !m.held) {
+        const spec = metronomeSpec(m.level || 1);
         const dist = spec.distance;
-        
+
         let dieOnSide = null;
-        if(m.orientation==='H') {
-          if(dieR === m.r) {
-            if(dieC < m.c && dieC >= m.c - dist) dieOnSide = 'L';
-            else if(dieC > m.c && dieC <= m.c + dist) dieOnSide = 'R';
+        if (m.orientation === "H") {
+          if (dieR === m.r) {
+            if (dieC < m.c && dieC >= m.c - dist) dieOnSide = "L";
+            else if (dieC > m.c && dieC <= m.c + dist) dieOnSide = "R";
           }
         } else {
-          if(dieC === m.c) {
-            if(dieR < m.r && dieR >= m.r - dist) dieOnSide = 'U';
-            else if(dieR > m.r && dieR <= m.r + dist) dieOnSide = 'D';
+          if (dieC === m.c) {
+            if (dieR < m.r && dieR >= m.r - dist) dieOnSide = "U";
+            else if (dieR > m.r && dieR <= m.r + dist) dieOnSide = "D";
           }
         }
-        
-        if(dieOnSide) {
+        if (dieOnSide) {
           const oppositeSide = oppositeOf(dieOnSide);
           triggerMetronome(m, oppositeSide);
         }
       }
     }
 
-    // Corner logic
-    for(const c of pieces) {
-      if(c.kind==='ACC' && c.accType===ACC_TYPES.CORNER && !c.held) {
-        const dist = cornerDist(c.level||1);
+    // Corner
+    for (const c of pieces) {
+      if (c.kind === "ACC" && c.accType === ACC_TYPES.CORNER && !c.held) {
+        const dist = cornerDist(c.level || 1);
         const cornerCells = cornerCellsFrom(c.r, c.c, c.dir1, c.dir2, dist);
-        
-        // Check if activated die is in corner area
-        const inCorner = cornerCells.some(cell => cell.r === dieR && cell.c === dieC);
-        if(inCorner) {
+        const inCorner = cornerCells.some((cell) => cell.r === dieR && cell.c === dieC);
+        if (inCorner) {
           triggerCorner(c, dieR, dieC);
         }
       }
     }
   }
-  
+
   function triggerMetronome(metronome, targetSide) {
-    const spec = metronomeSpec(metronome.level||1);
+    const spec = metronomeSpec(metronome.level || 1);
     const dist = spec.distance;
     const targetCells = lineCellsFrom(metronome.r, metronome.c, targetSide, dist);
-    
-    for(const cell of targetCells) { 
-      activeSideMap[cell.r][cell.c] = true; 
-      addOutline(cell.r, cell.c, 'metronome'); 
+
+    for (const cell of targetCells) {
+      activeSideMap[cell.r][cell.c] = true;
+      addOutline(cell.r, cell.c, "metronome");
     }
-    
-    const node = cells[metronome.r][metronome.c].el.querySelector('.piece.acc.metronome');
-    if(node) {
-      node.classList.remove('pushL','pushR','pushU','pushD');
-      node.classList.add('push' + targetSide);
-      setTimeout(() => { if(node) node.classList.remove('push' + targetSide); }, 140);
+
+    const node = cells[metronome.r][metronome.c].el.querySelector(
+      ".piece.acc.metronome"
+    );
+    if (node) {
+      node.classList.remove("pushL", "pushR", "pushU", "pushD");
+      node.classList.add("push" + targetSide);
+      setTimeout(() => {
+        if (node) node.classList.remove("push" + targetSide);
+      }, 140);
     }
-    
-    for(const cell of targetCells) {
+
+    for (const cell of targetCells) {
       const d = getPieceAt(cell.r, cell.c);
-      if(d && d.kind==='DIE' && !d.held) {
+      if (d && d.kind === "DIE" && !d.held) {
         d.cd -= spec.tickReduce;
-        if(d.cd <= 0) doDieJump(d);
+        if (d.cd <= 0) doDieJump(d);
       }
     }
-    
+
     applyCoverage();
-    
+
     setTimeout(() => {
-      for(const cell of targetCells) { activeSideMap[cell.r][cell.c] = false; }
+      for (const cell of targetCells) {
+        activeSideMap[cell.r][cell.c] = false;
+      }
       applyCoverage();
     }, 900);
   }
 
   function triggerCorner(corner, triggeredDieR, triggeredDieC) {
-    const dist = cornerDist(corner.level||1);
+    const dist = cornerDist(corner.level || 1);
     const cornerCells = cornerCellsFrom(corner.r, corner.c, corner.dir1, corner.dir2, dist);
-    
-    // Mark corner area for echo effect
-    for(const cell of cornerCells) { 
-      cornerEchoMap[cell.r][cell.c] = true; 
+
+    for (const cell of cornerCells) {
+      cornerEchoMap[cell.r][cell.c] = true;
     }
-    
-    // Corner pulse animation
-    const node = cells[corner.r][corner.c].el.querySelector('.piece.acc.corner');
-    if(node) {
-      node.classList.remove('echo-pulse');
+
+    const node = cells[corner.r][corner.c].el.querySelector(".piece.acc.corner");
+    if (node) {
+      node.classList.remove("echo-pulse");
       void node.offsetWidth;
-      node.classList.add('echo-pulse');
-      setTimeout(() => { if(node) node.classList.remove('echo-pulse'); }, 800);
+      node.classList.add("echo-pulse");
+      setTimeout(() => {
+        if (node) node.classList.remove("echo-pulse");
+      }, 800);
     }
-    
-    // Get the die that triggered
+
     const triggerDie = getPieceAt(triggeredDieR, triggeredDieC);
-    if(!triggerDie || triggerDie.kind !== 'DIE') return;
-    
-    // Echo the action after a short delay
+    if (!triggerDie || triggerDie.kind !== "DIE") return;
+
     setTimeout(() => {
-      doDieJump(triggerDie, true); // true = echo mode
-    }, 500);
-    
+      doDieJump(triggerDie, true); // echo
+    }, 450);
+
     applyCoverage();
-    
+
     setTimeout(() => {
-      for(const cell of cornerCells) { cornerEchoMap[cell.r][cell.c] = false; }
+      for (const cell of cornerCells) cornerEchoMap[cell.r][cell.c] = false;
       applyCoverage();
-    }, 1200);
+    }, 1100);
   }
 
-  let lastT=performance.now(), accum=0;
-  function loop(t){
-    const dt=(t-lastT)/1000; lastT=t; accum+=dt;
-    const step=1/60;
-    while(accum>=step){ update(step); accum-=step; }
+  let lastT = performance.now(),
+    accum = 0;
+  function loop(t) {
+    const dt = (t - lastT) / 1000;
+    lastT = t;
+    accum += dt;
+    const step = 1 / 60;
+    while (accum >= step) {
+      update(step);
+      accum -= step;
+    }
     requestAnimationFrame(loop);
   }
 
-  function update(dt){
-    const stringPctMap = Array.from({length:GRID_SIZE},()=>Array(GRID_SIZE).fill(0));
+  function update(dt) {
+    const stringPctMap = Array.from({ length: GRID_SIZE }, () =>
+      Array(GRID_SIZE).fill(0)
+    );
 
-    for(const p of pieces){
-      if(p.kind==='ACC' && p.accType===ACC_TYPES.STRING && !p.held){
-        const dist = stringDist(p.level||1);
-        const hit=lineCellsFrom(p.r,p.c,p.dir,dist);
-        for(const cell of hit){ stringPctMap[cell.r][cell.c]+=stringPct(p.level||1); }
+    for (const p of pieces) {
+      if (p.kind === "ACC" && p.accType === ACC_TYPES.STRING && !p.held) {
+        const dist = stringDist(p.level || 1);
+        const hit = lineCellsFrom(p.r, p.c, p.dir, dist);
+        for (const cell of hit) stringPctMap[cell.r][cell.c] += stringPct(p.level || 1);
       }
     }
-    for(let r=0;r<GRID_SIZE;r++) for(let c=0;c<GRID_SIZE;c++){ stringPctMap[r][c]=Math.min(.40,stringPctMap[r][c]); }
+    for (let r = 0; r < GRID_SIZE; r++)
+      for (let c = 0; c < GRID_SIZE; c++)
+        stringPctMap[r][c] = Math.min(0.4, stringPctMap[r][c]);
 
-    for(const p of pieces){
-      if(p.kind!=='DIE' || p.held) continue;
-      const pct=(stringPctMap[p.r][p.c]||0);
-      p.cd -= dt*(1+pct);
-      if(p.cd<=0) doDieJump(p);
-      
-      if(p._cdFillEl && p._cdFillEl.parentNode){
+    for (const p of pieces) {
+      if (p.kind !== "DIE" || p.held) continue;
+      const pct = stringPctMap[p.r][p.c] || 0;
+      p.cd -= dt * (1 + pct);
+      if (p.cd <= 0) doDieJump(p);
+
+      if (p._cdFillEl && p._cdFillEl.parentNode) {
         const base = p.baseCD ?? 3.5;
         const current = Math.max(0, p.cd);
-        const progress = Math.max(0, Math.min(1, 1 - (current / base)));
-        p._cdFillEl.style.width = (progress * 100).toFixed(1) + '%';
+        const progress = Math.max(0, Math.min(1, 1 - current / base));
+        p._cdFillEl.style.width = (progress * 100).toFixed(1) + "%";
       }
     }
   }
 
-  function doDieJump(p, isEcho = false){
-    if(!isEcho) {
+  function doDieJump(p, isEcho = false) {
+    if (!isEcho) {
       p.cd = p.baseCD ?? 3.5;
-      p.value = rollDieValue(p.level||1);
+      p.value = rollDieValue(p.level || 1);
     }
-    
-    if(!isEcho) {
-      onDiceActivation(p.r, p.c);
-    }
-    
-    const cell=cells[p.r][p.c]; if(!cell) return;
-    const node=cell.el.querySelector('.piece');
-    if(node){
-      node.classList.remove('dice-shake'); void node.offsetWidth; node.classList.add('dice-shake');
-      
-      if(!isEcho) {
-        const digit=node.querySelector('.digit'); 
-        if(digit) {
-          digit.textContent=String(p.value);
-        }
+
+    if (!isEcho) onDiceActivation(p.r, p.c);
+
+    const cell = cells[p.r][p.c];
+    if (!cell) return;
+    const node = cell.el.querySelector(".piece");
+    if (node) {
+      node.classList.remove("dice-shake");
+      void node.offsetWidth;
+      node.classList.add("dice-shake");
+
+      if (!isEcho) {
+        const digit = node.querySelector(".digit");
+        if (digit) digit.textContent = String(p.value);
       }
-      
-      const s=document.createElement('div'); s.className='spark';
-      const b=document.createElement('div'); b.className='beam';
-      b.style.transform=`rotate(${rand(0,360)}deg)`;
-      if(isEcho) {
-        b.style.background = 'linear-gradient(90deg, rgba(139,92,246,0), rgba(139,92,246,.8), rgba(139,92,246,0))';
+
+      const s = document.createElement("div");
+      s.className = "spark";
+      const b = document.createElement("div");
+      b.className = "beam";
+      b.style.transform = `rotate(${rand(0, 360)}deg)`;
+      if (isEcho) {
+        b.style.background =
+          "linear-gradient(90deg, rgba(139,92,246,0), rgba(139,92,246,.85), rgba(139,92,246,0))";
       }
-      s.appendChild(b); node.appendChild(s);
-      setTimeout(()=>s.remove(),600);
+      s.appendChild(b);
+      node.appendChild(s);
+      setTimeout(() => s.remove(), 600);
     }
   }
 
-  function addOutline(r,c,type){
-    const cell=cells[r][c]; if(!cell) return;
-    const ol=document.createElement('div');
-    ol.className='outline '+(type==='metronome'?'metronome':(type==='string'?'string':'corner'));
+  function addOutline(r, c, type) {
+    const cell = cells[r][c];
+    if (!cell) return;
+    const ol = document.createElement("div");
+    ol.className =
+      "outline " + (type === "metronome" ? "metronome" : type === "string" ? "string" : "corner");
     cell.el.appendChild(ol);
-    setTimeout(()=>{ try{ol.remove();}catch(e){} },900);
+    setTimeout(() => {
+      try {
+        ol.remove();
+      } catch (e) {}
+    }, 900);
   }
 
-  function lineCellsFrom(r,c,dir,dist){
-    const out=[]; let dr=0,dc=0;
-    if(dir==='U') dr=-1; if(dir==='D') dr=+1; if(dir==='L') dc=-1; if(dir==='R') dc=+1;
-    for(let k=1;k<=dist;k++){
-      const rr=r+dr*k, cc=c+dc*k;
-      if(rr<0||rr>=GRID_SIZE||cc<0||cc>=GRID_SIZE) break;
-      out.push({r:rr,c:cc});
+  function lineCellsFrom(r, c, dir, dist) {
+    const out = [];
+    let dr = 0,
+      dc = 0;
+    if (dir === "U") dr = -1;
+    if (dir === "D") dr = +1;
+    if (dir === "L") dc = -1;
+    if (dir === "R") dc = +1;
+    for (let k = 1; k <= dist; k++) {
+      const rr = r + dr * k,
+        cc = c + dc * k;
+      if (rr < 0 || rr >= GRID_SIZE || cc < 0 || cc >= GRID_SIZE) break;
+      out.push({ r: rr, c: cc });
     }
     return out;
   }
 
   function cornerCellsFrom(r, c, dir1, dir2, dist) {
     const out = [];
-    const cells1 = lineCellsFrom(r, c, dir1, dist);
-    const cells2 = lineCellsFrom(r, c, dir2, dist);
-    out.push(...cells1, ...cells2);
+    out.push(...lineCellsFrom(r, c, dir1, dist));
+    out.push(...lineCellsFrom(r, c, dir2, dist));
     return out;
   }
 
-  function initGrid(){
-    cells=[];
-    for(let r=0;r<GRID_SIZE;r++){
-      const row=[];
-      for(let c=0;c<GRID_SIZE;c++){
-        row.push({piece:null, el:null});
+  function initGrid() {
+    cells = [];
+    for (let r = 0; r < GRID_SIZE; r++) {
+      const row = [];
+      for (let c = 0; c < GRID_SIZE; c++) {
+        row.push({ piece: null, el: null });
       }
       cells.push(row);
     }
   }
 
-  function init(){
+  function init() {
     initGrid();
     renderBoard();
     rollDicePool();
@@ -1412,15 +1911,16 @@
     requestAnimationFrame(loop);
   }
 
-  refreshStoreBtn.addEventListener('click', ()=>{
-    rollDicePool(); rollStore();
+  refreshStoreBtn.addEventListener("click", () => {
+    rollDicePool();
+    rollStore();
   });
-  clearBoardBtn.addEventListener('click', ()=>{
-    pieces=[];
-    for(let r=0;r<GRID_SIZE;r++){
-      for(let c=0;c<GRID_SIZE;c++){
-        cells[r][c].piece=null;
-        updateCellVisual(r,c);
+  clearBoardBtn.addEventListener("click", () => {
+    pieces = [];
+    for (let r = 0; r < GRID_SIZE; r++) {
+      for (let c = 0; c < GRID_SIZE; c++) {
+        cells[r][c].piece = null;
+        updateCellVisual(r, c);
       }
     }
     recomputeCoverage();
