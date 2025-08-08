@@ -63,7 +63,7 @@
     background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
     color: var(--text);
     font-family: Inter, system-ui, Segoe UI, Roboto, Helvetica, Arial, sans-serif;
-    touch-action: none; /* Важно для pointer events */
+    touch-action: none;
     -webkit-touch-callout: none;
     -webkit-user-select: none;
     user-select: none;
@@ -1087,7 +1087,7 @@
         const cellElements = document.querySelectorAll(".cell");
         let best = null;
         let minD = Infinity;
-        const margin = 10; // Единый margin для всех устройств
+        const margin = 10;
         
         for (const cellEl of cellElements) {
           const rect = cellEl.getBoundingClientRect();
@@ -1115,21 +1115,7 @@
         el.dataset.r = r;
         el.dataset.c = c;
 
-        // Pointer Events - универсальные для всех устройств
-        el.addEventListener("pointerenter", () => {
-          if (dragging) {
-            hoverCell = { r, c, el };
-            el.classList.add("drag-over");
-          }
-        });
-        
-        el.addEventListener("pointerleave", () => {
-          if (hoverCell && hoverCell.el === el) {
-            el.classList.remove("drag-over");
-            hoverCell = null;
-          }
-        });
-        
+        // УБРАЛИ pointerenter/pointerleave - используем только логику в onDragMove
         el.addEventListener("pointerdown", (e) => {
           const p = getPieceAt(r, c);
           if (!p) return;
@@ -1201,7 +1187,6 @@
         }
         if (p.held) node.classList.add("inactive");
 
-        // Pointer Events - универсальный обработчик
         node.addEventListener("pointerdown", (e) => {
           e.stopPropagation();
           const pos = findPiece(p.id);
@@ -1319,7 +1304,6 @@
               prev.appendChild(t);
             }
 
-            // Pointer Events - универсальный обработчик
             slot.addEventListener("pointerdown", (e) => {
               beginDragFromStore(it, idx, e);
             });
@@ -1370,7 +1354,6 @@
         };
         setHeld(dragging.item, true);
 
-        // Pointer Events - универсальные обработчики
         document.addEventListener("pointermove", onDragMove);
         document.addEventListener("pointerup", onDragEnd);
         document.addEventListener("pointercancel", onDragEnd);
@@ -1388,17 +1371,16 @@
         };
         setHeld(p, true);
 
-        // Pointer Events - универсальные обработчики
         document.addEventListener("pointermove", onDragMove);
         document.addEventListener("pointerup", onDragEnd);
         document.addEventListener("pointercancel", onDragEnd);
       }
 
+      // ИСПРАВЛЕННАЯ функция onDragMove с правильной очисткой подсветки
       function onDragMove(e) {
         if (!dragging) return;
         e.preventDefault();
         
-        // Удаляем объект из ячейки только при первом движении
         if (dragging.src === "board" && !dragging.objectRemoved) {
           const { r, c } = dragging.originCell;
           cells[r][c].piece = null;
@@ -1406,16 +1388,18 @@
           dragging.objectRemoved = true;
         }
         
-        // Обновляем позицию ghost
         dragging.ghost.style.left = e.pageX + "px";
         dragging.ghost.style.top = e.pageY + "px";
 
-        // Обновляем hover cell
         const cellEl = findCellAt(e.clientX, e.clientY);
-        if (hoverCell && (!cellEl || hoverCell.el !== cellEl)) {
+        
+        // ИСПРАВЛЕНИЕ: Очищаем ВСЕ подсветки перед установкой новой
+        if (hoverCell) {
           hoverCell.el.classList.remove("drag-over");
           hoverCell = null;
         }
+        
+        // Устанавливаем новую подсветку если нашли ячейку
         if (cellEl) {
           const r = +cellEl.dataset.r, c = +cellEl.dataset.c;
           hoverCell = { r, c, el: cellEl };
@@ -1427,7 +1411,6 @@
         if (!dragging) return;
         e.preventDefault();
 
-        // Очищаем обработчики
         document.removeEventListener("pointermove", onDragMove);
         document.removeEventListener("pointerup", onDragEnd);
         document.removeEventListener("pointercancel", onDragEnd);
@@ -1443,10 +1426,17 @@
 
         dragging.ghost.remove();
         dragging = null;
-        if (hoverCell) {
-          hoverCell.el.classList.remove("drag-over");
-          hoverCell = null;
-        }
+        
+        // ИСПРАВЛЕНИЕ: Обязательно очищаем подсветку при завершении
+        clearAllDragOverHighlights();
+      }
+
+      // НОВАЯ функция для гарантированной очистки всех подсветок
+      function clearAllDragOverHighlights() {
+        document.querySelectorAll(".cell.drag-over").forEach(cell => {
+          cell.classList.remove("drag-over");
+        });
+        hoverCell = null;
       }
 
       function handleDropOutsideBoard() {
@@ -1573,7 +1563,6 @@
       }
 
       function onDiceActivation(dieR, dieC) {
-        // Metronome logic
         for (const m of pieces) {
           if (m.kind === "ACC" && m.accType === ACC_TYPES.METRONOME && !m.held) {
             const spec = metronomeSpec(m.level || 1);
@@ -1598,7 +1587,6 @@
           }
         }
 
-        // Corner logic
         for (const c of pieces) {
           if (c.kind === "ACC" && c.accType === ACC_TYPES.CORNER && !c.held) {
             const dist = cornerDist(c.level || 1);
