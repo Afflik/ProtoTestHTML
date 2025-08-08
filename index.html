@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"/>
-<title>Dice Field — Fixed Outline Z-Index</title>
+<title>Dice Field — Enhanced UI</title>
 <style>
   :root{
     /* Light theme colors */
@@ -69,7 +69,7 @@
   .wrap{ 
     min-height: 100vh; 
     display: grid; 
-    grid-template-rows: auto 1fr auto auto auto;
+    grid-template-rows: auto 1fr auto auto;
     overscroll-behavior: none;
   }
 
@@ -135,7 +135,7 @@
     position:absolute; inset:0; border-radius:6px; pointer-events:none;
     border:2px solid transparent; opacity:.9;
     transition: all 0.3s ease;
-    z-index: 1; /* coverage под кубиками */
+    z-index: 1;
   }
   .coverage.metronome{
     border-color: #f59e0b;
@@ -185,7 +185,7 @@
     position:absolute; inset:0; border-radius:6px; pointer-events:none; 
     border:2px solid transparent;
     transition: all 0.2s ease;
-    z-index: 1; /* outline тоже под кубиками */
+    z-index: 1;
   }
   .outline.metronome{
     border-color:#f59e0b;
@@ -226,7 +226,7 @@
     transition: transform .12s ease, box-shadow .12s ease, filter .12s ease;
     box-shadow: 0 2px 4px rgba(100,116,139,.2), inset 0 1px 0 rgba(255,255,255,.5);
     touch-action: none;
-    z-index: 5; /* кубики поверх outline и coverage */
+    z-index: 5;
   }
   .piece.inactive{filter: saturate(.7) brightness(.95); opacity:.9}
   .piece:hover{transform:translate(-50%, -50%) translateY(-1px)}
@@ -332,6 +332,38 @@
   .btn:hover{transform:translateY(-1px); background:linear-gradient(180deg,#f8fafc,#e2e8f0); box-shadow: 0 4px 6px rgba(100,116,139,.15)}
   .btn:active{transform:translateY(0)}
 
+  /* Новый блок с описанием усилителей */
+  .enhancer-info {
+    padding: 8px 12px;
+    background: rgba(255,255,255,.7);
+    border-top: 1px solid rgba(100,116,139,.1);
+    font-size: 11px;
+    color: var(--muted);
+    text-align: center;
+    display: flex;
+    justify-content: center;
+    gap: 20px;
+    flex-wrap: wrap;
+  }
+  .enhancer-desc {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+  .enhancer-icon {
+    width: 18px;
+    height: 18px;
+    border-radius: 3px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 8px;
+    font-weight: 700;
+    border: 1px solid rgba(100,116,139,.3);
+  }
+  .enhancer-icon.metronome { background: var(--metronome); }
+  .enhancer-icon.string { background: var(--string); }
+
   .store-wrap{
     position:sticky; bottom:0; z-index:9;
     padding:8px 12px 12px; 
@@ -346,8 +378,10 @@
     padding:8px;
   }
   .store-head{ 
-    display:flex; align-items:center; gap:6px; margin-bottom:8px; flex-wrap:wrap; 
-    justify-content:center;
+    display:flex; align-items:center; justify-content:center; margin-bottom:8px;
+    color: var(--text);
+    font-weight: 600;
+    font-size: 14px;
   }
   .store-grid{ 
     display:grid; grid-template-columns: repeat(3, 80px); gap:8px; justify-content:center;
@@ -409,6 +443,8 @@
     .store-grid { grid-template-columns: repeat(3, 70px); gap: 6px; }
     .slot { width: 70px; height: 70px; }
     .ghost { transform: scale(1.2); }
+    .enhancer-info { font-size: 10px; gap: 15px; }
+    .enhancer-icon { width: 16px; height: 16px; font-size: 7px; }
   }
 </style>
 </head>
@@ -416,14 +452,14 @@
 <div class="wrap">
   <header>
     <div class="title">Dice Field</div>
-    <div class="pill">7×7 • Touch & Drop</div>
+    <div class="pill">Drag & drop dice and enhancers</div>
     <div class="spacer"></div>
-    <div class="pill">Free</div>
+    <div class="pill">Merge identical pieces</div>
   </header>
 
   <div class="center">
     <div class="board-frame">
-      <div class="board-title">Your Field</div>
+      <div class="board-title">7×7 Game Field</div>
       <div class="board" id="board"></div>
     </div>
   </div>
@@ -433,14 +469,20 @@
     <button class="btn" id="clearBoardBtn">🗑️ Clear</button>
   </div>
 
+  <div class="enhancer-info">
+    <div class="enhancer-desc">
+      <div class="enhancer-icon metronome">H</div>
+      <span><strong>Metronome</strong> — speeds up dice cooldown in line (H/V)</span>
+    </div>
+    <div class="enhancer-desc">
+      <div class="enhancer-icon string">↑</div>
+      <span><strong>Strings</strong> — constantly speed up dice in direction</span>
+    </div>
+  </div>
+
   <div class="store-wrap">
     <div class="store-panel">
-      <div class="store-head">
-        <div class="pill" id="poolInfo">Dice pool: —</div>
-        <div class="pill" id="piecesInfo">On board: 0</div>
-        <div class="pill" id="tickInfo">Engine: ready</div>
-        <div class="pill" id="status">Ready</div>
-      </div>
+      <div class="store-head">Магазин</div>
       <div class="store-grid" id="store"></div>
     </div>
   </div>
@@ -489,10 +531,6 @@
 
   const boardEl=document.getElementById('board');
   const storeEl=document.getElementById('store');
-  const statusEl=document.getElementById('status');
-  const poolInfoEl=document.getElementById('poolInfo');
-  const tickInfoEl=document.getElementById('tickInfo');
-  const piecesInfoEl=document.getElementById('piecesInfo');
   const refreshStoreBtn=document.getElementById('refreshStoreBtn');
   const clearBoardBtn=document.getElementById('clearBoardBtn');
 
@@ -581,7 +619,34 @@
     if (e.touches && e.touches[0]) {
       return { x: e.touches[0].clientX, y: e.touches[0].clientY, pageX: e.touches[0].pageX, pageY: e.touches[0].pageY };
     }
+    if (e.changedTouches && e.changedTouches[0]) {
+      return { x: e.changedTouches[0].clientX, y: e.changedTouches[0].clientY, pageX: e.changedTouches[0].pageX, pageY: e.changedTouches[0].pageY };
+    }
     return { x: e.clientX, y: e.clientY, pageX: e.pageX, pageY: e.pageY };
+  }
+
+  function findCellAt(x, y) {
+    const cellElements = document.querySelectorAll('.cell');
+    let bestCell = null;
+    let minDistance = Infinity;
+
+    for (const cellEl of cellElements) {
+      const rect = cellEl.getBoundingClientRect();
+      const centerX = rect.left + rect.width / 2;
+      const centerY = rect.top + rect.height / 2;
+      
+      const margin = isMobile ? 8 : 4;
+      if (x >= rect.left - margin && x <= rect.right + margin && 
+          y >= rect.top - margin && y <= rect.bottom + margin) {
+        const distance = Math.sqrt((x - centerX) ** 2 + (y - centerY) ** 2);
+        if (distance < minDistance) {
+          minDistance = distance;
+          bestCell = cellEl;
+        }
+      }
+    }
+
+    return bestCell;
   }
 
   function makeCell(r,c){
@@ -642,12 +707,10 @@
       digit.className='digit'; digit.textContent=String(p.value ?? rollDieValue(p.level||1));
       node.appendChild(digit);
       
-      // Создаем кулдаун бар
       const bar=document.createElement('div'); bar.className='cdbar';
       const fill=document.createElement('div'); fill.className='fill';
       bar.appendChild(fill); node.appendChild(bar);
       
-      // Сохраняем ссылку на элемент заполнения
       updateCooldownReference(p, fill);
     }else{
       node.classList.add('acc', p.accType===ACC_TYPES.METRONOME?'metronome':'string');
@@ -681,7 +744,6 @@
     return node;
   }
 
-  // Функция для обновления ссылки на элемент кулдауна
   function updateCooldownReference(piece, fillElement) {
     piece._cdFillEl = fillElement;
   }
@@ -689,7 +751,6 @@
   function rollDicePool(){
     const shuffled=[...DIE_TYPES].sort(()=>Math.random()-.5);
     currentDicePool=shuffled.slice(0,5);
-    poolInfoEl.textContent='Pool: '+currentDicePool.map(d=>d.label).join(', ');
   }
   function makeStoreDie(t){
     return { kind:'DIE', dieType:t.key, dieLabel:t.label, dieColor:t.color, value:randInt(1,2), baseCD:3.5, cd:9999, level:1 };
@@ -820,8 +881,8 @@
     dragging.ghost.style.left = coords.pageX + 'px';
     dragging.ghost.style.top  = coords.pageY + 'px';
     
-    const el=document.elementFromPoint(coords.x, coords.y);
-    const cellEl=el && el.closest?.('.cell');
+    const cellEl = findCellAt(coords.x, coords.y);
+    
     if(hoverCell && (!cellEl || hoverCell.el!==cellEl)){
       hoverCell.el.classList.remove('drag-over'); hoverCell=null;
     }
@@ -844,19 +905,27 @@
     }
     
     const coords = getEventCoords(e);
-    const el=document.elementFromPoint(coords.x, coords.y);
-    const cellEl=el && el.closest?.('.cell');
+    const cellEl = findCellAt(coords.x, coords.y);
+    
     if(cellEl){
       const r=+cellEl.dataset.r, c=+cellEl.dataset.c;
       handleDropToCell(r,c);
-    }else{
-      if(dragging.src==='board' && dragging.originCell){
-        placePieceAt(dragging.item, dragging.originCell.r, dragging.originCell.c, false);
-      }
+    } else {
+      handleDropOutsideBoard();
     }
+    
     dragging.ghost.remove(); dragging=null;
     if(hoverCell){ hoverCell.el.classList.remove('drag-over'); hoverCell=null; }
-    updateStatus();
+  }
+
+  function handleDropOutsideBoard() {
+    if (dragging.src === 'board' && dragging.originCell) {
+      placePieceAt(dragging.item, dragging.originCell.r, dragging.originCell.c, false);
+      recomputeCoverage();
+    } else if (dragging.src === 'store') {
+      storeItems[dragging.originIndex] = dragging.item;
+      renderStore();
+    }
   }
 
   function setHeld(item,held){ item.held=!!held; }
@@ -892,6 +961,9 @@
       const origin=dragging.originCell;
       placePieceAt(item, origin.r, origin.c, false);
       recomputeCoverage();
+    } else {
+      storeItems[dragging.originIndex] = item;
+      renderStore();
     }
   }
 
@@ -919,7 +991,6 @@
     if(res.kind==='DIE'){
       res.baseCD = Math.max(2.2, (target.baseCD??3.5) - 0.2);
       res.value  = rollDieValue(res.level);
-      // Не копируем ссылку на элемент, она будет создана заново
       res._cdFillEl = null;
     }
     return res;
@@ -1042,7 +1113,6 @@
       p.cd -= dt*(1+pct);
       if(p.cd<=0) doDieJump(p);
       
-      // Обновляем полоску кулдауна
       if(p._cdFillEl && p._cdFillEl.parentNode){
         const base = p.baseCD ?? 3.5;
         const current = Math.max(0, p.cd);
@@ -1050,8 +1120,6 @@
         p._cdFillEl.style.width = (progress * 100).toFixed(1) + '%';
       }
     }
-
-    tickInfoEl.textContent='Engine: running';
   }
 
   function doDieJump(p){
@@ -1107,21 +1175,18 @@
       cells.push(row);
     }
   }
-  function updateStatus(){ piecesInfoEl.textContent='On board: '+pieces.length; }
 
   function init(){
     initGrid();
     renderBoard();
     rollDicePool();
     rollStore();
-    updateStatus();
     recomputeCoverage();
     requestAnimationFrame(loop);
   }
 
   refreshStoreBtn.addEventListener('click', ()=>{
     rollDicePool(); rollStore();
-    statusEl.textContent='Store refreshed.';
   });
   clearBoardBtn.addEventListener('click', ()=>{
     pieces=[];
@@ -1131,8 +1196,6 @@
         updateCellVisual(r,c);
       }
     }
-    updateStatus();
-    statusEl.textContent='Board cleared.';
     recomputeCoverage();
   });
 
