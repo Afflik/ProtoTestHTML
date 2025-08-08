@@ -1151,24 +1151,29 @@
         el.dataset.r = r;
         el.dataset.c = c;
 
-        if (!isMobile) {
-          el.addEventListener("mouseenter", () => {
-            if (dragging) {
-              hoverCell = { r, c, el };
-              el.classList.add("drag-over");
-            }
-          });
-          el.addEventListener("mouseleave", () => {
-            if (hoverCell && hoverCell.el === el) {
-              el.classList.remove("drag-over");
-              hoverCell = null;
-            }
-          });
-          el.addEventListener("mousedown", (e) => {
-            const p = getPieceAt(r, c);
-            if (!p) return;
-            beginDragFromBoard(p, r, c, e);
-          });
+        // Обработчики для PC + mobile одинаковые
+        el.addEventListener("mouseenter", () => {
+          if (dragging) {
+            hoverCell = { r, c, el };
+            el.classList.add("drag-over");
+          }
+        });
+        
+        el.addEventListener("mouseleave", () => {
+          if (hoverCell && hoverCell.el === el) {
+            el.classList.remove("drag-over");
+            hoverCell = null;
+          }
+        });
+        
+        // Unified обработчик для ячеек - работает и для mouse и для touch
+        el.addEventListener("mousedown", handleCellDragStart);
+        el.addEventListener("touchstart", handleCellDragStart, { passive: false });
+
+        function handleCellDragStart(e) {
+          const p = getPieceAt(r, c);
+          if (!p) return;
+          beginDragFromBoard(p, r, c, e);
         }
 
         return el;
@@ -1235,57 +1240,16 @@
         }
         if (p.held) node.classList.add("inactive");
 
-        // Обработка ввода для PC (mouse)
-        if (!isMobile) {
-          node.addEventListener("mousedown", (e) => {
-            e.stopPropagation();
-            const pos = findPiece(p.id);
-            if (!pos) return;
-            beginDragFromBoard(p, pos.r, pos.c, e);
-          });
+        // Unified обработчик для pieces - работает и для mouse и для touch
+        node.addEventListener("mousedown", handlePieceDragStart);
+        node.addEventListener("touchstart", handlePieceDragStart, { passive: false });
+
+        function handlePieceDragStart(e) {
+          e.stopPropagation();
+          const pos = findPiece(p.id);
+          if (!pos) return;
+          beginDragFromBoard(p, pos.r, pos.c, e);
         }
-
-        // Обработка ввода для mobile (touch) - полностью повторяет PC логику
-        node.addEventListener(
-          "touchstart",
-          (e) => {
-            e.preventDefault();
-            e.stopPropagation();
-            e.stopImmediatePropagation();
-
-            const pos = findPiece(p.id);
-            if (!pos) return;
-
-            // Создаём ghost
-            const coords = getEventCoords(e);
-            const ghost = createGhost(p, coords.pageX, coords.pageY);
-
-            // Очищаем ячейку
-            const cell = cells[pos.r][pos.c];
-            cell.piece = null;
-            cell.el.classList.remove("occupied");
-            const pieceEl = cell.el.querySelector(".piece");
-            if (pieceEl) pieceEl.remove();
-
-            // Удаляем из pieces
-            pieces = pieces.filter((x) => x.id !== p.id);
-
-            // Устанавливаем dragging
-            dragging = {
-              src: "board",
-              item: p,
-              originCell: { r: pos.r, c: pos.c },
-              ghost: ghost,
-            };
-            setHeld(p, true);
-
-            // Добавляем глобальные обработчики для движения и окончания
-            document.addEventListener("touchmove", onDragMove, { passive: false });
-            document.addEventListener("touchend", onDragEnd, { passive: false });
-            document.addEventListener("touchcancel", onDragEnd, { passive: false });
-          },
-          { passive: false }
-        );
 
         return node;
       }
@@ -1400,19 +1364,13 @@
               prev.appendChild(t);
             }
 
-            if (!isMobile) {
-              slot.addEventListener("mousedown", (e) => {
-                beginDragFromStore(it, idx, e);
-              });
+            // Unified обработчик для store slots - работает и для mouse и для touch
+            slot.addEventListener("mousedown", handleStoreDragStart);
+            slot.addEventListener("touchstart", handleStoreDragStart, { passive: false });
+
+            function handleStoreDragStart(e) {
+              beginDragFromStore(it, idx, e);
             }
-            slot.addEventListener(
-              "touchstart",
-              (e) => {
-                e.preventDefault();
-                beginDragFromStore(it, idx, e);
-              },
-              { passive: false }
-            );
           } else {
             prev.style.background = "linear-gradient(135deg,#f1f5f9,#cbd5e1)";
           }
@@ -1461,7 +1419,8 @@
         };
         setHeld(dragging.item, true);
 
-        if (isMobile) {
+        // Unified обработчики для движения и окончания
+        if (e.type === "touchstart") {
           document.addEventListener("touchmove", onDragMove, { passive: false });
           document.addEventListener("touchend", onDragEnd, { passive: false });
           document.addEventListener("touchcancel", onDragEnd, { passive: false });
@@ -1482,11 +1441,12 @@
         };
         setHeld(dragging.item, true);
 
-        // Очищаем ячейку
+        // Очищаем ячейку ОДИНАКОВО для PC и mobile
         cells[r][c].piece = null;
         updateCellVisual(r, c);
 
-        if (isMobile) {
+        // Unified обработчики для движения и окончания
+        if (e.type === "touchstart") {
           document.addEventListener("touchmove", onDragMove, { passive: false });
           document.addEventListener("touchend", onDragEnd, { passive: false });
           document.addEventListener("touchcancel", onDragEnd, { passive: false });
@@ -1520,7 +1480,8 @@
         if (!dragging) return;
         e.preventDefault();
 
-        if (isMobile) {
+        // Очищаем обработчики ОДИНАКОВО для PC и mobile
+        if (e.type.startsWith("touch")) {
           document.removeEventListener("touchmove", onDragMove);
           document.removeEventListener("touchend", onDragEnd);
           document.removeEventListener("touchcancel", onDragEnd);
