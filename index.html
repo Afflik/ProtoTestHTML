@@ -63,7 +63,7 @@
     background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
     color: var(--text);
     font-family: Inter, system-ui, Segoe UI, Roboto, Helvetica, Arial, sans-serif;
-    touch-action: manipulation;
+    touch-action: none; /* Важно для pointer events */
     -webkit-touch-callout: none;
     -webkit-user-select: none;
     user-select: none;
@@ -921,7 +921,6 @@
         { key: "SNIPER", color: "var(--die-teal)", label: "Sniper" },
       ];
       const ACC_TYPES = { METRONOME: "METRONOME", STRING: "STRING", CORNER: "CORNER" };
-      const isMobile = "ontouchstart" in window;
 
       const rand = (a, b) => Math.random() * (b - a) + a;
       const randInt = (a, b) => Math.floor(rand(a, b + 1));
@@ -944,14 +943,8 @@
       }
       function cornerArrow(d1, d2) {
         const map = {
-          UL: "⌜",
-          LU: "⌜",
-          UR: "⌝",
-          RU: "⌝",
-          DL: "⌞",
-          LD: "⌞",
-          DR: "⌟",
-          RD: "⌟",
+          UL: "⌜", LU: "⌜", UR: "⌝", RU: "⌝",
+          DL: "⌞", LD: "⌞", DR: "⌟", RD: "⌟",
         };
         return map[d1 + d2] || "L";
       }
@@ -997,21 +990,11 @@
       let cornerEchoMap = [];
 
       function resetCoverage() {
-        coverageLayerM = Array.from({ length: GRID_SIZE }, () =>
-          Array(GRID_SIZE).fill(false)
-        );
-        coverageLayerS = Array.from({ length: GRID_SIZE }, () =>
-          Array(GRID_SIZE).fill(false)
-        );
-        coverageLayerC = Array.from({ length: GRID_SIZE }, () =>
-          Array(GRID_SIZE).fill(false)
-        );
-        activeSideMap = Array.from({ length: GRID_SIZE }, () =>
-          Array(GRID_SIZE).fill(false)
-        );
-        cornerEchoMap = Array.from({ length: GRID_SIZE }, () =>
-          Array(GRID_SIZE).fill(false)
-        );
+        coverageLayerM = Array.from({ length: GRID_SIZE }, () => Array(GRID_SIZE).fill(false));
+        coverageLayerS = Array.from({ length: GRID_SIZE }, () => Array(GRID_SIZE).fill(false));
+        coverageLayerC = Array.from({ length: GRID_SIZE }, () => Array(GRID_SIZE).fill(false));
+        activeSideMap = Array.from({ length: GRID_SIZE }, () => Array(GRID_SIZE).fill(false));
+        cornerEchoMap = Array.from({ length: GRID_SIZE }, () => Array(GRID_SIZE).fill(false));
       }
 
       function applyCoverage() {
@@ -1100,35 +1083,16 @@
         applyCoverage();
       }
 
-      function getEventCoords(e) {
-        if (e.touches && e.touches[0]) {
-          return {
-            x: e.touches[0].clientX,
-            y: e.touches[0].clientY,
-            pageX: e.touches[0].pageX,
-            pageY: e.touches[0].pageY,
-          };
-        }
-        if (e.changedTouches && e.changedTouches[0]) {
-          return {
-            x: e.changedTouches[0].clientX,
-            y: e.changedTouches[0].clientY,
-            pageX: e.changedTouches[0].pageX,
-            pageY: e.changedTouches[0].pageY,
-          };
-        }
-        return { x: e.clientX, y: e.clientY, pageX: e.pageX, pageY: e.pageY };
-      }
-
       function findCellAt(x, y) {
         const cellElements = document.querySelectorAll(".cell");
         let best = null;
         let minD = Infinity;
+        const margin = 10; // Единый margin для всех устройств
+        
         for (const cellEl of cellElements) {
           const rect = cellEl.getBoundingClientRect();
           const cx = rect.left + rect.width / 2;
           const cy = rect.top + rect.height / 2;
-          const margin = isMobile ? 12 : 4;
           if (
             x >= rect.left - margin &&
             x <= rect.right + margin &&
@@ -1151,29 +1115,26 @@
         el.dataset.r = r;
         el.dataset.c = c;
 
-        el.addEventListener("mouseenter", () => {
+        // Pointer Events - универсальные для всех устройств
+        el.addEventListener("pointerenter", () => {
           if (dragging) {
             hoverCell = { r, c, el };
             el.classList.add("drag-over");
           }
         });
         
-        el.addEventListener("mouseleave", () => {
+        el.addEventListener("pointerleave", () => {
           if (hoverCell && hoverCell.el === el) {
             el.classList.remove("drag-over");
             hoverCell = null;
           }
         });
         
-        // Единый обработчик для cell drag start
-        function handleCellStart(e) {
+        el.addEventListener("pointerdown", (e) => {
           const p = getPieceAt(r, c);
           if (!p) return;
           beginDragFromBoard(p, r, c, e);
-        }
-        
-        el.addEventListener("mousedown", handleCellStart);
-        el.addEventListener("touchstart", handleCellStart, { passive: false });
+        });
 
         return el;
       }
@@ -1204,6 +1165,7 @@
       function renderPieceNode(p) {
         const node = document.createElement("div");
         node.classList.add("piece");
+        
         if (p.kind === "DIE") {
           node.classList.add("die");
           node.setAttribute("data-type", p.dieType);
@@ -1239,16 +1201,13 @@
         }
         if (p.held) node.classList.add("inactive");
 
-        // Единый обработчик для piece drag start
-        function handlePieceStart(e) {
+        // Pointer Events - универсальный обработчик
+        node.addEventListener("pointerdown", (e) => {
           e.stopPropagation();
           const pos = findPiece(p.id);
           if (!pos) return;
           beginDragFromBoard(p, pos.r, pos.c, e);
-        }
-        
-        node.addEventListener("mousedown", handlePieceStart);
-        node.addEventListener("touchstart", handlePieceStart, { passive: false });
+        });
 
         return node;
       }
@@ -1261,6 +1220,7 @@
         const shuffled = [...DIE_TYPES].sort(() => Math.random() - 0.5);
         currentDicePool = shuffled.slice(0, 5);
       }
+
       function makeStoreDie(t) {
         return {
           kind: "DIE",
@@ -1273,6 +1233,7 @@
           level: 1,
         };
       }
+
       function makeStoreAcc(type) {
         if (type === ACC_TYPES.METRONOME) {
           return {
@@ -1289,12 +1250,7 @@
             dir: ["U", "D", "L", "R"][randInt(0, 3)],
           };
         } else {
-          const dirs = [
-            ["U", "L"],
-            ["U", "R"],
-            ["D", "L"],
-            ["D", "R"],
-          ];
+          const dirs = [["U", "L"], ["U", "R"], ["D", "L"], ["D", "R"]];
           const chosen = dirs[randInt(0, 3)];
           return {
             kind: "ACC",
@@ -1363,13 +1319,10 @@
               prev.appendChild(t);
             }
 
-            // Единый обработчик для store drag start
-            function handleStoreStart(e) {
+            // Pointer Events - универсальный обработчик
+            slot.addEventListener("pointerdown", (e) => {
               beginDragFromStore(it, idx, e);
-            }
-            
-            slot.addEventListener("mousedown", handleStoreStart);
-            slot.addEventListener("touchstart", handleStoreStart, { passive: false });
+            });
           } else {
             prev.style.background = "linear-gradient(135deg,#f1f5f9,#cbd5e1)";
           }
@@ -1409,66 +1362,43 @@
 
       function beginDragFromStore(item, index, e) {
         e.preventDefault();
-        const coords = getEventCoords(e);
         dragging = {
           src: "store",
           item: deepClone(item),
           originIndex: index,
-          ghost: createGhost(item, coords.pageX, coords.pageY),
+          ghost: createGhost(item, e.pageX, e.pageY),
         };
         setHeld(dragging.item, true);
 
-        // Добавляем единые обработчики для движения
-        addDragListeners(e);
+        // Pointer Events - универсальные обработчики
+        document.addEventListener("pointermove", onDragMove);
+        document.addEventListener("pointerup", onDragEnd);
+        document.addEventListener("pointercancel", onDragEnd);
       }
 
       function beginDragFromBoard(p, r, c, e) {
         e.preventDefault();
-        const coords = getEventCoords(e);
-        
-        // КЛЮЧЕВОЕ ИСПРАВЛЕНИЕ: НЕ удаляем объект сразу, а только помечаем его как held
-        // Удаление происходит только при движении мыши/пальца
-        setHeld(p, true);
         
         dragging = {
           src: "board",
           item: p,
           originCell: { r, c },
-          ghost: createGhost(p, coords.pageX, coords.pageY),
-          objectRemoved: false  // флаг что объект еще не удален из ячейки
+          ghost: createGhost(p, e.pageX, e.pageY),
+          objectRemoved: false
         };
+        setHeld(p, true);
 
-        // Добавляем единые обработчики для движения
-        addDragListeners(e);
-      }
-
-      function addDragListeners(e) {
-        if (e.type === "touchstart") {
-          document.addEventListener("touchmove", onDragMove, { passive: false });
-          document.addEventListener("touchend", onDragEnd, { passive: false });
-          document.addEventListener("touchcancel", onDragEnd, { passive: false });
-        } else {
-          document.addEventListener("mousemove", onDragMove);
-          document.addEventListener("mouseup", onDragEnd);
-        }
-      }
-
-      function removeDragListeners(e) {
-        if (e.type.startsWith("touch")) {
-          document.removeEventListener("touchmove", onDragMove);
-          document.removeEventListener("touchend", onDragEnd);
-          document.removeEventListener("touchcancel", onDragEnd);
-        } else {
-          document.removeEventListener("mousemove", onDragMove);
-          document.removeEventListener("mouseup", onDragEnd);
-        }
+        // Pointer Events - универсальные обработчики
+        document.addEventListener("pointermove", onDragMove);
+        document.addEventListener("pointerup", onDragEnd);
+        document.addEventListener("pointercancel", onDragEnd);
       }
 
       function onDragMove(e) {
         if (!dragging) return;
         e.preventDefault();
         
-        // КЛЮЧЕВОЕ ИСПРАВЛЕНИЕ: удаляем объект из ячейки только при первом движении
+        // Удаляем объект из ячейки только при первом движении
         if (dragging.src === "board" && !dragging.objectRemoved) {
           const { r, c } = dragging.originCell;
           cells[r][c].piece = null;
@@ -1476,18 +1406,18 @@
           dragging.objectRemoved = true;
         }
         
-        const coords = getEventCoords(e);
-        dragging.ghost.style.left = coords.pageX + "px";
-        dragging.ghost.style.top = coords.pageY + "px";
+        // Обновляем позицию ghost
+        dragging.ghost.style.left = e.pageX + "px";
+        dragging.ghost.style.top = e.pageY + "px";
 
-        const cellEl = findCellAt(coords.x, coords.y);
+        // Обновляем hover cell
+        const cellEl = findCellAt(e.clientX, e.clientY);
         if (hoverCell && (!cellEl || hoverCell.el !== cellEl)) {
           hoverCell.el.classList.remove("drag-over");
           hoverCell = null;
         }
         if (cellEl) {
-          const r = +cellEl.dataset.r,
-            c = +cellEl.dataset.c;
+          const r = +cellEl.dataset.r, c = +cellEl.dataset.c;
           hoverCell = { r, c, el: cellEl };
           cellEl.classList.add("drag-over");
         }
@@ -1497,14 +1427,15 @@
         if (!dragging) return;
         e.preventDefault();
 
-        removeDragListeners(e);
+        // Очищаем обработчики
+        document.removeEventListener("pointermove", onDragMove);
+        document.removeEventListener("pointerup", onDragEnd);
+        document.removeEventListener("pointercancel", onDragEnd);
 
-        const coords = getEventCoords(e);
-        const cellEl = findCellAt(coords.x, coords.y);
+        const cellEl = findCellAt(e.clientX, e.clientY);
 
         if (cellEl) {
-          const r = +cellEl.dataset.r,
-            c = +cellEl.dataset.c;
+          const r = +cellEl.dataset.r, c = +cellEl.dataset.c;
           handleDropToCell(r, c);
         } else {
           handleDropOutsideBoard();
@@ -1520,12 +1451,10 @@
 
       function handleDropOutsideBoard() {
         if (dragging.src === "board" && dragging.originCell) {
-          // ИСПРАВЛЕНИЕ: возвращаем объект на исходное место
           const { r, c } = dragging.originCell;
           placePieceAt(dragging.item, r, c, false);
           recomputeCoverage();
         } else if (dragging.src === "store") {
-          // Возвращаем в store
           storeItems[dragging.originIndex] = dragging.item;
           renderStore();
         }
@@ -1564,7 +1493,6 @@
           return;
         }
 
-        // Если нельзя слить, возвращаем на исходное место
         if (dragging.src === "board") {
           const origin = dragging.originCell;
           placePieceAt(item, origin.r, origin.c, false);
@@ -1633,6 +1561,7 @@
       function getPieceAt(r, c) {
         return cells[r][c].piece || null;
       }
+      
       function findPiece(id) {
         for (let r = 0; r < GRID_SIZE; r++) {
           for (let c = 0; c < GRID_SIZE; c++) {
@@ -1644,7 +1573,7 @@
       }
 
       function onDiceActivation(dieR, dieC) {
-        // Metronome
+        // Metronome logic
         for (const m of pieces) {
           if (m.kind === "ACC" && m.accType === ACC_TYPES.METRONOME && !m.held) {
             const spec = metronomeSpec(m.level || 1);
@@ -1669,7 +1598,7 @@
           }
         }
 
-        // Corner
+        // Corner logic
         for (const c of pieces) {
           if (c.kind === "ACC" && c.accType === ACC_TYPES.CORNER && !c.held) {
             const dist = cornerDist(c.level || 1);
@@ -1692,9 +1621,7 @@
           addOutline(cell.r, cell.c, "metronome");
         }
 
-        const node = cells[metronome.r][metronome.c].el.querySelector(
-          ".piece.acc.metronome"
-        );
+        const node = cells[metronome.r][metronome.c].el.querySelector(".piece.acc.metronome");
         if (node) {
           node.classList.remove("pushL", "pushR", "pushU", "pushD");
           node.classList.add("push" + targetSide);
@@ -1743,7 +1670,7 @@
         if (!triggerDie || triggerDie.kind !== "DIE") return;
 
         setTimeout(() => {
-          doDieJump(triggerDie, true); // echo
+          doDieJump(triggerDie, true);
         }, 450);
 
         applyCoverage();
@@ -1754,8 +1681,7 @@
         }, 1100);
       }
 
-      let lastT = performance.now(),
-        accum = 0;
+      let lastT = performance.now(), accum = 0;
       function loop(t) {
         const dt = (t - lastT) / 1000;
         lastT = t;
@@ -1839,8 +1765,7 @@
         const cell = cells[r][c];
         if (!cell) return;
         const ol = document.createElement("div");
-        ol.className =
-          "outline " + (type === "metronome" ? "metronome" : type === "string" ? "string" : "corner");
+        ol.className = "outline " + (type === "metronome" ? "metronome" : type === "string" ? "string" : "corner");
         cell.el.appendChild(ol);
         setTimeout(() => {
           try {
@@ -1851,15 +1776,13 @@
 
       function lineCellsFrom(r, c, dir, dist) {
         const out = [];
-        let dr = 0,
-          dc = 0;
+        let dr = 0, dc = 0;
         if (dir === "U") dr = -1;
         if (dir === "D") dr = +1;
         if (dir === "L") dc = -1;
         if (dir === "R") dc = +1;
         for (let k = 1; k <= dist; k++) {
-          const rr = r + dr * k,
-            cc = c + dc * k;
+          const rr = r + dr * k, cc = c + dc * k;
           if (rr < 0 || rr >= GRID_SIZE || cc < 0 || cc >= GRID_SIZE) break;
           out.push({ r: rr, c: cc });
         }
@@ -1897,6 +1820,7 @@
         rollDicePool();
         rollStore();
       });
+      
       clearBoardBtn.addEventListener("click", () => {
         pieces = [];
         for (let r = 0; r < GRID_SIZE; r++) {
