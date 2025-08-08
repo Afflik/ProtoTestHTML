@@ -1,0 +1,966 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Dice Field — Realistic Dice Roll, Fixed String Animation</title>
+<style>
+  :root{
+    /* Light theme colors */
+    --bg:#f8fafc;
+    --panel:#ffffff;
+    --text:#334155;
+    --muted:#64748b;
+
+    /* Pastel dice palette */
+    --die-blue:#bfdbfe;
+    --die-cyan:#a5f3fc;
+    --die-pink:#fbcfe8;
+    --die-lime:#d9f99d;
+    --die-orange:#fed7aa;
+    --die-red:#fecaca;
+    --die-teal:#99f6e4;
+
+    /* Pastel accelerators */
+    --metronome:#fef3c7;
+    --string:#e0e7ff;
+
+    --cell-bg1:#f1f5f9;
+    --cell-bg2:#e2e8f0;
+    --cell-bg3:#cbd5e1;
+    --cell-border:rgba(100,116,139,.3);
+    --cell-border-occupied:rgba(100,116,139,.5);
+
+    --glow-metro: rgba(251,191,36,.6);
+    --glow-string: rgba(129,140,248,.6);
+    --glow-strong: 0 0 12px;
+
+    --cell-size:36px;
+  }
+
+  *{box-sizing:border-box}
+  html,body{
+    height:100%; margin:0;
+    background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
+    color:var(--text); font-family:Inter,system-ui,Segoe UI,Roboto,Helvetica,Arial,sans-serif;
+  }
+
+  .wrap{ min-height:100vh; display:grid; grid-template-rows:auto 1fr auto; }
+
+  header{
+    position:sticky; top:0; z-index:10;
+    display:flex; align-items:center; gap:12px; padding:12px 16px;
+    background:rgba(255,255,255,.9); backdrop-filter: blur(10px);
+    border-bottom:1px solid rgba(100,116,139,.2);
+    box-shadow: 0 1px 3px rgba(100,116,139,.1);
+  }
+  .title{font-weight:800; letter-spacing:.4px; color:var(--text)}
+  .spacer{flex:1}
+  .btn{
+    background:linear-gradient(180deg,#ffffff,#f1f5f9);
+    border:1px solid #cbd5e1; color:var(--text); padding:10px 14px; border-radius:12px;
+    cursor:pointer; box-shadow: 0 1px 3px rgba(100,116,139,.1);
+    transition:.15s transform, .2s background, .2s box-shadow;
+  }
+  .btn:hover{transform:translateY(-1px); background:linear-gradient(180deg,#f8fafc,#e2e8f0); box-shadow: 0 4px 6px rgba(100,116,139,.15)}
+  .btn:active{transform:translateY(0)}
+  .pill{
+    padding:6px 10px; border-radius:999px; font-size:12px; color:var(--muted);
+    background:rgba(241,245,249,.8); border:1px solid rgba(100,116,139,.2);
+  }
+
+  .center{ display:grid; place-items:center; padding:18px 16px 8px; }
+
+  .board-frame{
+    position:relative; padding:18px; border-radius:20px;
+    background:var(--panel);
+    border:1px solid rgba(100,116,139,.2);
+    box-shadow: 0 10px 25px rgba(100,116,139,.1);
+  }
+  .board-title{
+    position:absolute; top:-12px; left:50%; transform:translateX(-50%);
+    font-size:12px; color:var(--muted); padding:4px 10px; border-radius:999px;
+    background:var(--panel); border:1px solid rgba(100,116,139,.2);
+    letter-spacing:.4px;
+  }
+
+  .board{
+    --size:7;
+    display:grid; grid-template-columns: repeat(var(--size), var(--cell-size));
+    grid-template-rows: repeat(var(--size), var(--cell-size));
+    gap:5px; position:relative;
+    filter: drop-shadow(0 2px 4px rgba(100,116,139,.1));
+    user-select:none;
+  }
+
+  .cell{
+    position:relative; width:var(--cell-size); height:var(--cell-size);
+    min-width:var(--cell-size); min-height:var(--cell-size);
+    border-radius:7px; overflow:hidden;
+    background: linear-gradient(135deg, var(--cell-bg1) 0%, var(--cell-bg2) 50%, var(--cell-bg3) 100%);
+    border:1px solid var(--cell-border);
+    box-shadow: inset 0 1px 0 rgba(255,255,255,.8), inset 0 -1px 2px rgba(100,116,139,.1);
+    transition:border-color .15s ease, transform .12s ease, outline-color .12s ease;
+  }
+  .cell.occupied{border-color: var(--cell-border-occupied)}
+  .cell.drag-over{outline:2px solid #3b82f6; outline-offset:-3px}
+
+  .coverage{
+    position:absolute; inset:0; border-radius:8px; pointer-events:none;
+    border:1px dashed transparent; opacity:.8;
+  }
+  .coverage.metronome{
+    border-color: #fbbf24;
+    background: rgba(251,191,36,.1);
+    box-shadow: var(--glow-strong) var(--glow-metro);
+  }
+  .coverage.string{
+    border-color: #818cf8;
+    background: rgba(129,140,248,.1);
+    box-shadow: var(--glow-strong) var(--glow-string);
+    animation: stringPulse 1.5s ease-in-out infinite;
+  }
+  .coverage.string.level-2{
+    animation: stringPulse 1.2s ease-in-out infinite;
+  }
+  .coverage.string.level-3{
+    animation: stringPulse 0.9s ease-in-out infinite;
+  }
+  .coverage.active-side{ 
+    animation: activeSide 0.9s ease-out; 
+    background: rgba(251,191,36,.3);
+  }
+  
+  @keyframes activeSide{ 0%{opacity:.4} 30%{opacity:1} 100%{opacity:.8} }
+  @keyframes stringPulse{ 
+    0%{opacity:.6; transform:scale(.98)} 
+    50%{opacity:1; transform:scale(1.02)} 
+    100%{opacity:.6; transform:scale(.98)} 
+  }
+
+  .outline{
+    position:absolute; inset:0; border-radius:8px; pointer-events:none; border:1px solid transparent;
+  }
+  .outline.metronome{
+    border-color:#fbbf24;
+    background: rgba(251,191,36,.2);
+    animation: pulseM 900ms ease-out;
+  }
+  .outline.string{
+    border-color:#818cf8;
+    background: rgba(129,140,248,.2);
+    animation: pulseS 900ms ease-out;
+  }
+  @keyframes pulseM{ 0%{opacity:0} 40%{opacity:1} 100%{opacity:0} }
+  @keyframes pulseS{ 0%{opacity:0} 40%{opacity:1} 100%{opacity:0} }
+
+  .piece{
+    position:absolute; 
+    top:0; left:0;
+    width:var(--cell-size); 
+    height:var(--cell-size);
+    border-radius:6px;
+    display:flex; align-items:center; justify-content:center; text-align:center;
+    font-weight:700; letter-spacing:.2px; user-select:none; cursor:grab;
+    transition: transform .12s ease, box-shadow .12s ease, filter .12s ease;
+    box-shadow: 0 2px 4px rgba(100,116,139,.2), inset 0 1px 0 rgba(255,255,255,.5);
+  }
+  .piece.inactive{filter: saturate(.7) brightness(.95); opacity:.9}
+  .piece:hover{transform:translateY(-1px)}
+  .piece:active{transform:translateY(0)}
+
+  .die{
+    color:#374151; font-size:14px; position:relative;
+    display:flex; align-items:center; justify-content:center;
+    border:1px solid rgba(100,116,139,.3);
+  }
+  .die .digit{
+    position:absolute; top:50%; left:50%; transform:translate(-50%,-50%);
+    font-weight:800; text-shadow: 0 1px 2px rgba(255,255,255,.8);
+    line-height:1;
+  }
+  .cdbar{
+    position:absolute; left:3px; right:3px; bottom:3px; height:3px; border-radius:999px;
+    background: #ffffff;
+    overflow:hidden; border:1px solid rgba(100,116,139,.3);
+  }
+  .cdbar .fill{
+    height:100%; width:0%; background: #eab308;
+    transition: width .08s linear;
+  }
+
+  .acc{ 
+    color:#374151; font-weight:700; text-shadow:none; position:relative;
+    display:flex; align-items:center; justify-content:center; font-size:12px;
+    border:1px solid rgba(100,116,139,.3);
+    width: calc(var(--cell-size) * 1.1);
+    height: calc(var(--cell-size) * 1.1);
+    top: calc(var(--cell-size) * -0.05);
+    left: calc(var(--cell-size) * -0.05);
+  }
+  .acc.metronome{
+    background: var(--metronome);
+  }
+  .acc.string{
+    background: var(--string);
+    /* убираем постоянную анимацию - будет добавляться через JS */
+  }
+  
+  /* Анимация пульсации для струн на поле (добавляется через JS) */
+  .acc.string.field-pulse{
+    animation: stringAccPulse 1.5s ease-in-out infinite;
+  }
+  @keyframes stringAccPulse{
+    0%{transform: translate(calc(var(--cell-size) * -0.05), calc(var(--cell-size) * -0.05)) scale(.98)}
+    50%{transform: translate(calc(var(--cell-size) * -0.05), calc(var(--cell-size) * -0.05)) scale(1.02)}
+    100%{transform: translate(calc(var(--cell-size) * -0.05), calc(var(--cell-size) * -0.05)) scale(.98)}
+  }
+
+  .acc.metronome.pushL{ transform: translate(calc(var(--cell-size) * -0.05 - 2px), calc(var(--cell-size) * -0.05)); }
+  .acc.metronome.pushR{ transform: translate(calc(var(--cell-size) * -0.05 + 2px), calc(var(--cell-size) * -0.05)); }
+  .acc.metronome.pushU{ transform: translate(calc(var(--cell-size) * -0.05), calc(var(--cell-size) * -0.05 - 2px)); }
+  .acc.metronome.pushD{ transform: translate(calc(var(--cell-size) * -0.05), calc(var(--cell-size) * -0.05 + 2px)); }
+
+  /* Реалистичная анимация броска кубика */
+  .dice-roll{ 
+    animation: diceRoll .8s cubic-bezier(.25,.46,.45,.94);
+    transform-origin: center center;
+  }
+  @keyframes diceRoll{
+    0% { 
+      transform: translateY(0) rotateX(0deg) rotateY(0deg) scale(1);
+      box-shadow: 0 2px 4px rgba(100,116,139,.2), inset 0 1px 0 rgba(255,255,255,.5);
+    }
+    15% { 
+      transform: translateY(-12px) rotateX(180deg) rotateY(90deg) scale(1.1);
+      box-shadow: 0 8px 16px rgba(100,116,139,.3), inset 0 1px 0 rgba(255,255,255,.5);
+    }
+    35% { 
+      transform: translateY(-18px) rotateX(360deg) rotateY(180deg) scale(1.15);
+      box-shadow: 0 12px 20px rgba(100,116,139,.4), inset 0 1px 0 rgba(255,255,255,.5);
+    }
+    50% { 
+      transform: translateY(-15px) rotateX(540deg) rotateY(270deg) scale(1.1);
+      box-shadow: 0 10px 18px rgba(100,116,139,.35), inset 0 1px 0 rgba(255,255,255,.5);
+    }
+    70% { 
+      transform: translateY(-8px) rotateX(720deg) rotateY(360deg) scale(1.05);
+      box-shadow: 0 6px 12px rgba(100,116,139,.25), inset 0 1px 0 rgba(255,255,255,.5);
+    }
+    85% { 
+      transform: translateY(-2px) rotateX(720deg) rotateY(360deg) scale(1.02);
+      box-shadow: 0 4px 8px rgba(100,116,139,.2), inset 0 1px 0 rgba(255,255,255,.5);
+    }
+    100% { 
+      transform: translateY(0) rotateX(720deg) rotateY(360deg) scale(1);
+      box-shadow: 0 2px 4px rgba(100,116,139,.2), inset 0 1px 0 rgba(255,255,255,.5);
+    }
+  }
+  
+  .spark{ position:absolute; inset:0; pointer-events:none; }
+  .beam{
+    position:absolute; left:10%; top:50%; width:80%; height:2px; border-radius:1px;
+    background: linear-gradient(90deg, rgba(59,130,246,0), rgba(59,130,246,.8), rgba(59,130,246,0));
+    transform-origin:left center; filter: blur(.2px);
+    animation: beam .6s ease-out;
+  }
+  @keyframes beam{ 0%{opacity:0; transform:scaleX(0)} 25%{opacity:1; transform:scaleX(.65)} 100%{opacity:0; transform:scaleX(1)} }
+
+  .store-wrap{
+    position:sticky; bottom:0; z-index:9;
+    padding:12px 16px 16px; 
+    background: linear-gradient(180deg, rgba(248,250,252,0) 0%, rgba(248,250,252,.95) 20%, rgba(248,250,252,1) 100%);
+    border-top:1px solid rgba(100,116,139,.2);
+  }
+  .store-panel{
+    border-radius:16px; background:var(--panel);
+    border:1px solid rgba(100,116,139,.2);
+    box-shadow: 0 4px 12px rgba(100,116,139,.1);
+    padding:12px;
+  }
+  .store-head{ display:flex; align-items:center; gap:10px; margin-bottom:10px; flex-wrap:wrap; }
+  .store-grid{ display:grid; grid-template-columns: repeat(3, 104px); gap:10px; justify-content:center; }
+  .slot{
+    position:relative; width:104px; height:104px; border-radius:12px; overflow:hidden;
+    display:flex; align-items:center; justify-content:center;
+    background:linear-gradient(135deg,#f8fafc,#e2e8f0);
+    border:2px solid rgba(100,116,139,.2);
+    box-shadow: 0 2px 4px rgba(100,116,139,.1);
+    cursor:grab;
+  }
+  .slot:active{cursor:grabbing}
+  .slot .label{
+    position:absolute; bottom:6px; left:6px;
+    font-size:11px; color:var(--muted); opacity:.9;
+    background:rgba(255,255,255,.9); padding:2px 6px; border-radius:999px; border:1px solid rgba(100,116,139,.2);
+  }
+  .slot .preview{
+    position:absolute; inset:8px; border-radius:10px; display:flex; align-items:center; justify-content:center;
+    width: calc(100% - 16px); height: calc(100% - 16px);
+    box-shadow: 0 2px 4px rgba(100,116,139,.2), inset 0 1px 0 rgba(255,255,255,.5);
+    border:1px solid rgba(100,116,139,.2);
+    color:#374151; font-weight:700;
+  }
+
+  .ghost{
+    position:fixed; width: var(--cell-size); height: var(--cell-size);
+    margin-left: calc(-1 * var(--cell-size) / 2);
+    margin-top:  calc(-1 * var(--cell-size) / 2);
+    border-radius:6px; pointer-events:none; opacity:.95; z-index:9999;
+    box-shadow: 0 4px 12px rgba(100,116,139,.3), inset 0 1px 0 rgba(255,255,255,.5);
+    border:1px solid rgba(100,116,139,.3);
+    display:flex; align-items:center; justify-content:center; color:#374151; font-weight:700; font-size:12px;
+  }
+  .ghost .digit{ font-size:12px; text-shadow: 0 1px 2px rgba(255,255,255,.8); }
+
+  /* Pastel dice colors */
+  .die[data-type="BLASTER"], .preview[data-type="BLASTER"] { background: var(--die-cyan); }
+  .die[data-type="FROST"], .preview[data-type="FROST"] { background: var(--die-blue); }
+  .die[data-type="VAMP"], .preview[data-type="VAMP"] { background: var(--die-pink); }
+  .die[data-type="CRIT"], .preview[data-type="CRIT"] { background: var(--die-orange); }
+  .die[data-type="ARC"], .preview[data-type="ARC"] { background: var(--die-lime); }
+  .die[data-type="MAGMA"], .preview[data-type="MAGMA"] { background: var(--die-red); }
+  .die[data-type="SNIPER"], .preview[data-type="SNIPER"] { background: var(--die-teal); }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <div class="title">Dice Field — Prototype</div>
+    <div class="pill">7×7 • Drag & Drop • Merge to Lv3</div>
+    <div class="spacer"></div>
+    <button class="btn" id="refreshStoreBtn">Refresh Store</button>
+    <button class="btn" id="clearBoardBtn">Clear Board</button>
+    <div class="pill">All purchases: Free</div>
+  </header>
+
+  <div class="center">
+    <div class="board-frame">
+      <div class="board-title">Your Field</div>
+      <div class="board" id="board"></div>
+    </div>
+  </div>
+
+  <div class="store-wrap">
+    <div class="store-panel">
+      <div class="store-head">
+        <div class="pill" id="poolInfo">Dice pool: —</div>
+        <div class="pill" id="piecesInfo">On board: 0</div>
+        <div class="pill" id="tickInfo">Engine: ready</div>
+        <div class="spacer"></div>
+        <div class="pill" id="status">Ready.</div>
+      </div>
+      <div class="store-grid" id="store"></div>
+    </div>
+  </div>
+</div>
+
+<script>
+(function(){
+  if (window.DiceFieldMounted) { console.warn('Mounted already'); return; }
+  window.DiceFieldMounted = true;
+
+  const GRID_SIZE = 7;
+  const DIE_TYPES = [
+    {key:'BLASTER', color:'var(--die-cyan)',  label:'Blaster'},
+    {key:'FROST',   color:'var(--die-blue)',  label:'Frost'},
+    {key:'VAMP',    color:'var(--die-pink)',  label:'Vamp'},
+    {key:'CRIT',    color:'var(--die-orange)',label:'Crit'},
+    {key:'ARC',     color:'var(--die-lime)',  label:'Arc'},
+    {key:'MAGMA',   color:'var(--die-red)',   label:'Magma'},
+    {key:'SNIPER',  color:'var(--die-teal)',  label:'Sniper'},
+  ];
+  const ACC_TYPES = { METRONOME:'METRONOME', STRING:'STRING' };
+  const rand=(a,b)=>Math.random()*(b-a)+a;
+  const randInt=(a,b)=>Math.floor(rand(a,b+1));
+
+  function metronomeSpec(lv){ return { tickReduce:[0,0.30,0.45,0.60][lv], distance: lv }; }
+  function stringDist(lv){ return [0,2,4,6][lv]; }
+  function stringPct(lv){ return [0,.10,.15,.20][lv]; }
+
+  function dirArrow(d){ return ({U:'↑',D:'↓',L:'←',R:'→'})[d] || '?'; }
+  function oppositeOf(dir){ return {L:'R', R:'L', U:'D', D:'U'}[dir] || null; }
+  function rollDieValue(level){ if(level<=1) return randInt(1,2); if(level===2) return randInt(2,4); return randInt(3,6); }
+
+  function deepClone(obj) {
+    if (obj === null || typeof obj !== 'object') return obj;
+    if (obj instanceof HTMLElement) return null;
+    if (obj instanceof Array) return obj.map(deepClone);
+    
+    const cloned = {};
+    for (const key in obj) {
+      if (obj.hasOwnProperty(key) && key !== '_cdFillEl') {
+        cloned[key] = deepClone(obj[key]);
+      }
+    }
+    return cloned;
+  }
+
+  const boardEl=document.getElementById('board');
+  const storeEl=document.getElementById('store');
+  const statusEl=document.getElementById('status');
+  const poolInfoEl=document.getElementById('poolInfo');
+  const tickInfoEl=document.getElementById('tickInfo');
+  const piecesInfoEl=document.getElementById('piecesInfo');
+  const refreshStoreBtn=document.getElementById('refreshStoreBtn');
+  const clearBoardBtn=document.getElementById('clearBoardBtn');
+
+  let cells=[];
+  let pieces=[];
+  let pieceIdSeq=1;
+  let storeItems=[];
+  let currentDicePool=[];
+  let dragging=null;
+  let hoverCell=null;
+
+  let coverageLayerM = [];
+  let coverageLayerS = [];
+  let activeSideMap = [];
+
+  function resetCoverage(){
+    coverageLayerM = Array.from({length:GRID_SIZE},()=>Array(GRID_SIZE).fill(false));
+    coverageLayerS = Array.from({length:GRID_SIZE},()=>Array(GRID_SIZE).fill(false));
+    activeSideMap = Array.from({length:GRID_SIZE},()=>Array(GRID_SIZE).fill(false));
+  }
+  
+  function applyCoverage(){
+    for(let r=0;r<GRID_SIZE;r++){
+      for(let c=0;c<GRID_SIZE;c++){
+        const el = cells[r][c].el;
+        el.querySelectorAll('.coverage').forEach(n=>n.remove());
+        if(coverageLayerM[r][c]){
+          const k=document.createElement('div'); k.className='coverage metronome';
+          if(activeSideMap[r][c]) k.classList.add('active-side');
+          el.appendChild(k);
+        }
+        if(coverageLayerS[r][c]){
+          const k=document.createElement('div'); k.className='coverage string';
+          const stringPiece = findStringAffectingCell(r, c);
+          if(stringPiece) {
+            k.classList.add(`level-${stringPiece.level||1}`);
+          }
+          el.appendChild(k);
+        }
+      }
+    }
+  }
+  
+  function findStringAffectingCell(r, c) {
+    for(const p of pieces) {
+      if(p.kind==='ACC' && p.accType===ACC_TYPES.STRING) {
+        const dist = stringDist(p.level||1);
+        const line=lineCellsFrom(p.r,p.c,p.dir,dist);
+        for(const cell of line) {
+          if(cell.r === r && cell.c === c) return p;
+        }
+      }
+    }
+    return null;
+  }
+
+  function recomputeCoverage(){
+    resetCoverage();
+    for(const p of pieces){
+      if(p.kind==='ACC' && p.accType===ACC_TYPES.METRONOME){
+        const spec=metronomeSpec(p.level||1);
+        const dist = spec.distance;
+        const all=[];
+        if(p.orientation==='H'){
+          all.push(...lineCellsFrom(p.r,p.c,'L',dist));
+          all.push(...lineCellsFrom(p.r,p.c,'R',dist));
+        }else{
+          all.push(...lineCellsFrom(p.r,p.c,'U',dist));
+          all.push(...lineCellsFrom(p.r,p.c,'D',dist));
+        }
+        for(const cell of all){ coverageLayerM[cell.r][cell.c]=true; }
+      }
+      if(p.kind==='ACC' && p.accType===ACC_TYPES.STRING){
+        const dist = stringDist(p.level||1);
+        const line=lineCellsFrom(p.r,p.c,p.dir,dist);
+        for(const cell of line){ coverageLayerS[cell.r][cell.c]=true; }
+      }
+    }
+    applyCoverage();
+  }
+
+  function makeCell(r,c){
+    const el=document.createElement('div');
+    el.className='cell';
+    el.dataset.r=r; el.dataset.c=c;
+    el.addEventListener('mouseenter', ()=>{
+      if(dragging){ hoverCell={r,c,el}; el.classList.add('drag-over'); }
+    });
+    el.addEventListener('mouseleave', ()=>{
+      if(hoverCell && hoverCell.el===el){ el.classList.remove('drag-over'); hoverCell=null; }
+    });
+    el.addEventListener('mousedown', (e)=>{
+      const p=getPieceAt(r,c); if(!p) return;
+      beginDragFromBoard(p,r,c,e);
+    });
+    return el;
+  }
+  function renderBoard(){
+    boardEl.innerHTML='';
+    boardEl.style.setProperty('--size', GRID_SIZE);
+    for(let r=0;r<GRID_SIZE;r++){
+      for(let c=0;c<GRID_SIZE;c++){
+        const el=makeCell(r,c);
+        boardEl.appendChild(el);
+        cells[r][c].el=el;
+        updateCellVisual(r,c);
+      }
+    }
+    recomputeCoverage();
+  }
+  function updateCellVisual(r,c){
+    const cell=cells[r][c], el=cell.el;
+    el.classList.toggle('occupied', !!cell.piece);
+    const old=el.querySelector('.piece'); if(old) old.remove();
+    if(cell.piece){ el.appendChild(renderPieceNode(cell.piece)); }
+  }
+
+  function renderPieceNode(p){
+    const node=document.createElement('div');
+    node.classList.add('piece');
+    if(p.kind==='DIE'){
+      node.classList.add('die');
+      node.setAttribute('data-type', p.dieType);
+      const digit=document.createElement('div');
+      digit.className='digit'; digit.textContent=String(p.value ?? rollDieValue(p.level||1));
+      node.appendChild(digit);
+      const bar=document.createElement('div'); bar.className='cdbar';
+      const fill=document.createElement('div'); fill.className='fill';
+      bar.appendChild(fill); node.appendChild(bar);
+      p._cdFillEl = fill;
+    }else{
+      node.classList.add('acc', p.accType===ACC_TYPES.METRONOME?'metronome':'string');
+      const mark=document.createElement('div');
+      mark.style.fontWeight='700';
+      mark.textContent=(p.accType===ACC_TYPES.METRONOME ? (p.orientation==='H'?'H':'V') : dirArrow(p.dir));
+      node.appendChild(mark);
+      
+      // Добавляем пульсацию струнам только на поле
+      if(p.accType===ACC_TYPES.STRING && !p.held) {
+        node.classList.add('field-pulse');
+      }
+    }
+    if(p.held) node.classList.add('inactive');
+    node.addEventListener('mousedown', (e)=>{
+      e.stopPropagation();
+      const pos=findPiece(p.id); if(!pos) return;
+      beginDragFromBoard(p,pos.r,pos.c,e);
+    });
+    return node;
+  }
+
+  function rollDicePool(){
+    const shuffled=[...DIE_TYPES].sort(()=>Math.random()-.5);
+    currentDicePool=shuffled.slice(0,5);
+    poolInfoEl.textContent='Dice pool: '+currentDicePool.map(d=>d.label).join(', ');
+  }
+  function makeStoreDie(t){
+    return { kind:'DIE', dieType:t.key, dieLabel:t.label, dieColor:t.color, value:randInt(1,2), baseCD:3.5, cd:9999, level:1 };
+  }
+  function makeStoreAcc(type){
+    if(type===ACC_TYPES.METRONOME){
+      return { kind:'ACC', accType:type, level:1, orientation:(Math.random()<0.5?'H':'V') };
+    }else{
+      return { kind:'ACC', accType:type, level:1, dir:['U','D','L','R'][randInt(0,3)] };
+    }
+  }
+  
+  function rollStore(){
+    storeItems=[];
+    const accType = Math.random()<0.5?ACC_TYPES.METRONOME:ACC_TYPES.STRING;
+    storeItems.push(makeStoreAcc(accType));
+    for(let i=0;i<2;i++){
+      const t=currentDicePool[randInt(0,currentDicePool.length-1)];
+      storeItems.push(makeStoreDie(t));
+    }
+    renderStore();
+  }
+  
+  function renderStore(){
+    storeEl.innerHTML='';
+    storeItems.forEach((it,idx)=>{
+      const slot=document.createElement('div');
+      slot.className='slot';
+      slot.dataset.index=idx;
+
+      const label=document.createElement('div');
+      label.className='label';
+      label.textContent = it
+        ? (it.kind==='DIE' ? `${it.dieLabel} • Lv${it.level||1}` :
+            (it.accType===ACC_TYPES.METRONOME?`Metro (${it.orientation}) • Lv${it.level||1}`:`String (${dirArrow(it.dir)}) • Lv${it.level||1}`))
+        : 'Empty';
+      slot.appendChild(label);
+
+      const prev=document.createElement('div'); prev.className='preview';
+      if(it){
+        if(it.kind==='DIE'){
+          prev.setAttribute('data-type', it.dieType);
+          prev.classList.add('die');
+          const d=document.createElement('div'); d.style.fontSize='20px'; d.style.fontWeight='700';
+          d.textContent=String(it.value);
+          prev.appendChild(d);
+        }else{
+          prev.classList.add('acc', it.accType===ACC_TYPES.METRONOME?'metronome':'string');
+          // НЕ добавляем field-pulse для превью в магазине
+          const t=document.createElement('div'); t.style.fontWeight='700';
+          t.textContent = it.accType===ACC_TYPES.METRONOME ? (it.orientation==='H'?'H':'V') : dirArrow(it.dir);
+          prev.appendChild(t);
+        }
+        slot.addEventListener('mousedown', (e)=> beginDragFromStore(it,idx,e) );
+      }else{
+        prev.style.background='linear-gradient(135deg,#f1f5f9,#cbd5e1)';
+      }
+      slot.appendChild(prev);
+      storeEl.appendChild(slot);
+    });
+  }
+
+  function createGhost(item, pageX, pageY){
+    const g=document.createElement('div');
+    g.className='ghost';
+    g.style.left = pageX + 'px';
+    g.style.top  = pageY + 'px';
+    if(item.kind==='DIE'){
+      g.setAttribute('data-type', item.dieType);
+      g.classList.add('die');
+      const d=document.createElement('div'); d.className='digit'; d.textContent=String(item.value ?? rollDieValue(item.level||1));
+      g.appendChild(d);
+    }else{
+      g.classList.add('acc', item.accType===ACC_TYPES.METRONOME?'metronome':'string');
+      const t=document.createElement('div'); t.style.fontWeight='700';
+      t.textContent = item.accType===ACC_TYPES.METRONOME ? (item.orientation==='H'?'H':'V') : dirArrow(item.dir);
+      g.appendChild(t);
+    }
+    document.body.appendChild(g);
+    return g;
+  }
+  function beginDragFromStore(item,index,e){
+    dragging={src:'store', item:deepClone(item), originIndex:index, ghost:createGhost(item,e.pageX,e.pageY)};
+    setHeld(dragging.item,true);
+    document.addEventListener('mousemove', onDragMove);
+    document.addEventListener('mouseup', onDragEnd);
+  }
+  function beginDragFromBoard(p,r,c,e){
+    dragging={src:'board', item:p, originCell:{r,c}, ghost:createGhost(p,e.pageX,e.pageY)};
+    setHeld(dragging.item,true);
+    cells[r][c].piece=null; updateCellVisual(r,c);
+    document.addEventListener('mousemove', onDragMove);
+    document.addEventListener('mouseup', onDragEnd);
+  }
+  function onDragMove(e){
+    if(!dragging) return;
+    dragging.ghost.style.left = e.pageX + 'px';
+    dragging.ghost.style.top  = e.pageY + 'px';
+    const el=document.elementFromPoint(e.clientX,e.clientY);
+    const cellEl=el && el.closest?.('.cell');
+    if(hoverCell && (!cellEl || hoverCell.el!==cellEl)){
+      hoverCell.el.classList.remove('drag-over'); hoverCell=null;
+    }
+    if(cellEl){
+      const r=+cellEl.dataset.r, c=+cellEl.dataset.c;
+      hoverCell={r,c,el:cellEl}; cellEl.classList.add('drag-over');
+    }
+  }
+  function onDragEnd(e){
+    document.removeEventListener('mousemove', onDragMove);
+    document.removeEventListener('mouseup', onDragEnd);
+    if(!dragging) return;
+    const el=document.elementFromPoint(e.clientX,e.clientY);
+    const cellEl=el && el.closest?.('.cell');
+    if(cellEl){
+      const r=+cellEl.dataset.r, c=+cellEl.dataset.c;
+      handleDropToCell(r,c);
+    }else{
+      if(dragging.src==='board' && dragging.originCell){
+        placePieceAt(dragging.item, dragging.originCell.r, dragging.originCell.c, false);
+      }
+    }
+    dragging.ghost.remove(); dragging=null;
+    if(hoverCell){ hoverCell.el.classList.remove('drag-over'); hoverCell=null; }
+    updateStatus();
+  }
+  function setHeld(item,held){ item.held=!!held; }
+
+  function handleDropToCell(r,c){
+    const cell=cells[r][c];
+    const item=dragging.item;
+
+    if(!cell.piece){
+      placePieceAt(item,r,c,true);
+      if(dragging.src==='store'){ storeItems[dragging.originIndex]=null; renderStore(); }
+      recomputeCoverage();
+      return;
+    }
+
+    const target=cell.piece;
+    if(strictCanMerge(target,item)){
+      const upgraded = strictUpgrade(target, item);
+      
+      if(dragging.src==='board'){ 
+        pieces = pieces.filter(pp=>pp.id!==item.id); 
+      }
+      if(dragging.src==='store'){ 
+        storeItems[dragging.originIndex]=null; renderStore(); 
+      }
+      
+      placePieceAt(upgraded,r,c,true);
+      recomputeCoverage();
+      return;
+    }
+
+    if(dragging.src==='board'){
+      const origin=dragging.originCell;
+      placePieceAt(item, origin.r, origin.c, false);
+      recomputeCoverage();
+    }
+  }
+
+  function strictCanMerge(a,b){
+    if(!a || !b) return false;
+    if(a.kind!==b.kind) return false;
+    if((a.level||1)!==(b.level||1)) return false;
+    if((a.level||1)>=3) return false;
+
+    if(a.kind==='DIE'){
+      return a.dieType===b.dieType;
+    }else{
+      if(a.accType!==b.accType) return false;
+      if(a.accType===ACC_TYPES.METRONOME){
+        return a.orientation===b.orientation;
+      }else{
+        return a.dir===b.dir;
+      }
+    }
+  }
+
+  function strictUpgrade(target, dragged){
+    const res = deepClone(target);
+    res.level = Math.min(3, (target.level||1)+1);
+    if(res.kind==='DIE'){
+      res.baseCD = Math.max(2.2, (target.baseCD??3.5) - 0.2);
+      res.value  = rollDieValue(res.level);
+      res._cdFillEl = null;
+    }
+    return res;
+  }
+
+  function placePieceAt(p, r, c, activate){
+    setHeld(p, false);
+    p.id ??= pieceIdSeq++;
+    p.r=r; p.c=c;
+    if(p.kind==='DIE'){
+      p.cd= p.cd ?? p.baseCD ?? 3.5;
+      if(activate) p.cd=p.baseCD ?? 3.5;
+      p.value = p.value ?? rollDieValue(p.level||1);
+    }
+    
+    pieces = pieces.filter(x=>x.id!==p.id);
+    pieces.push(p);
+    
+    cells[r][c].piece=p;
+    updateCellVisual(r,c);
+  }
+  
+  function getPieceAt(r,c){ return cells[r][c].piece || null; }
+  function findPiece(id){
+    for(let r=0;r<GRID_SIZE;r++){
+      for(let c=0;c<GRID_SIZE;c++){
+        const p=cells[r][c].piece;
+        if(p && p.id===id) return {r,c};
+      }
+    }
+    return null;
+  }
+
+  function onDiceActivation(dieR, dieC) {
+    for(const m of pieces) {
+      if(m.kind==='ACC' && m.accType===ACC_TYPES.METRONOME && !m.held) {
+        const spec = metronomeSpec(m.level||1);
+        const dist = spec.distance;
+        
+        let dieOnSide = null;
+        if(m.orientation==='H') {
+          if(dieR === m.r) {
+            if(dieC < m.c && dieC >= m.c - dist) dieOnSide = 'L';
+            else if(dieC > m.c && dieC <= m.c + dist) dieOnSide = 'R';
+          }
+        } else {
+          if(dieC === m.c) {
+            if(dieR < m.r && dieR >= m.r - dist) dieOnSide = 'U';
+            else if(dieR > m.r && dieR <= m.r + dist) dieOnSide = 'D';
+          }
+        }
+        
+        if(dieOnSide) {
+          const oppositeSide = oppositeOf(dieOnSide);
+          triggerMetronome(m, oppositeSide);
+        }
+      }
+    }
+  }
+  
+  function triggerMetronome(metronome, targetSide) {
+    const spec = metronomeSpec(metronome.level||1);
+    const dist = spec.distance;
+    const targetCells = lineCellsFrom(metronome.r, metronome.c, targetSide, dist);
+    
+    for(const cell of targetCells) { 
+      activeSideMap[cell.r][cell.c] = true; 
+      addOutline(cell.r, cell.c, 'metronome'); 
+    }
+    
+    const node = cells[metronome.r][metronome.c].el.querySelector('.piece.acc.metronome');
+    if(node) {
+      node.classList.remove('pushL','pushR','pushU','pushD');
+      node.classList.add('push' + targetSide);
+      setTimeout(() => { if(node) node.classList.remove('push' + targetSide); }, 140);
+    }
+    
+    for(const cell of targetCells) {
+      const d = getPieceAt(cell.r, cell.c);
+      if(d && d.kind==='DIE' && !d.held) {
+        d.cd -= spec.tickReduce;
+        if(d.cd <= 0) doDieJump(d);
+      }
+    }
+    
+    applyCoverage();
+    
+    setTimeout(() => {
+      for(const cell of targetCells) { activeSideMap[cell.r][cell.c] = false; }
+      applyCoverage();
+    }, 900);
+  }
+
+  let lastT=performance.now(), accum=0;
+  function loop(t){
+    const dt=(t-lastT)/1000; lastT=t; accum+=dt;
+    const step=1/60;
+    while(accum>=step){ update(step); accum-=step; }
+    requestAnimationFrame(loop);
+  }
+
+  function update(dt){
+    const stringPctMap = Array.from({length:GRID_SIZE},()=>Array(GRID_SIZE).fill(0));
+
+    for(const p of pieces){
+      if(p.kind==='ACC' && p.accType===ACC_TYPES.STRING && !p.held){
+        const dist = stringDist(p.level||1);
+        const hit=lineCellsFrom(p.r,p.c,p.dir,dist);
+        for(const cell of hit){ stringPctMap[cell.r][cell.c]+=stringPct(p.level||1); }
+      }
+    }
+    for(let r=0;r<GRID_SIZE;r++) for(let c=0;c<GRID_SIZE;c++){ stringPctMap[r][c]=Math.min(.40,stringPctMap[r][c]); }
+
+    for(const p of pieces){
+      if(p.kind!=='DIE' || p.held) continue;
+      const pct=(stringPctMap[p.r][p.c]||0);
+      p.cd -= dt*(1+pct);
+      if(p.cd<=0) doDieJump(p);
+      
+      if(p._cdFillEl){
+        const base = p.baseCD ?? 3.5;
+        const clamped = Math.max(0, Math.min(base, p.cd));
+        const progress = 1 - (clamped / base);
+        p._cdFillEl.style.width = (progress*100).toFixed(1)+'%';
+      }
+    }
+
+    tickInfoEl.textContent='Engine: running';
+  }
+
+  function doDieJump(p){
+    p.cd = p.baseCD ?? 3.5;
+    p.value = rollDieValue(p.level||1);
+    
+    onDiceActivation(p.r, p.c);
+    
+    const cell=cells[p.r][p.c]; if(!cell) return;
+    const node=cell.el.querySelector('.piece');
+    if(node){
+      // Новая реалистичная анимация броска
+      node.classList.remove('dice-roll'); void node.offsetWidth; node.classList.add('dice-roll');
+      
+      const digit=node.querySelector('.digit'); 
+      if(digit) {
+        // Показываем новое значение в середине анимации
+        setTimeout(() => {
+          digit.textContent=String(p.value);
+        }, 400);
+      }
+      
+      const s=document.createElement('div'); s.className='spark';
+      const b=document.createElement('div'); b.className='beam';
+      b.style.transform=`rotate(${rand(0,360)}deg)`;
+      s.appendChild(b); node.appendChild(s);
+      setTimeout(()=>s.remove(),600);
+    }
+  }
+
+  function addOutline(r,c,type){
+    const cell=cells[r][c]; if(!cell) return;
+    const ol=document.createElement('div');
+    ol.className='outline '+(type==='metronome'?'metronome':'string');
+    cell.el.appendChild(ol);
+    setTimeout(()=>{ try{ol.remove();}catch(e){} },900);
+  }
+
+  function lineCellsFrom(r,c,dir,dist){
+    const out=[]; let dr=0,dc=0;
+    if(dir==='U') dr=-1; if(dir==='D') dr=+1; if(dir==='L') dc=-1; if(dir==='R') dc=+1;
+    for(let k=1;k<=dist;k++){
+      const rr=r+dr*k, cc=c+dc*k;
+      if(rr<0||rr>=GRID_SIZE||cc<0||cc>=GRID_SIZE) break;
+      out.push({r:rr,c:cc});
+    }
+    return out;
+  }
+
+  function initGrid(){
+    cells=[];
+    for(let r=0;r<GRID_SIZE;r++){
+      const row=[];
+      for(let c=0;c<GRID_SIZE;c++){
+        row.push({piece:null, el:null});
+      }
+      cells.push(row);
+    }
+  }
+  function updateStatus(){ piecesInfoEl.textContent='On board: '+pieces.length; }
+
+  function init(){
+    initGrid();
+    renderBoard();
+    rollDicePool();
+    rollStore();
+    updateStatus();
+    recomputeCoverage();
+    requestAnimationFrame(loop);
+  }
+
+  refreshStoreBtn.addEventListener('click', ()=>{
+    rollDicePool(); rollStore();
+    statusEl.textContent='Store refreshed.';
+  });
+  clearBoardBtn.addEventListener('click', ()=>{
+    pieces=[];
+    for(let r=0;r<GRID_SIZE;r++){
+      for(let c=0;c<GRID_SIZE;c++){
+        cells[r][c].piece=null;
+        updateCellVisual(r,c);
+      }
+    }
+    updateStatus();
+    statusEl.textContent='Board cleared.';
+    recomputeCoverage();
+  });
+
+  init();
+})();
+</script>
+</body>
+</html>
