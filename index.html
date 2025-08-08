@@ -1471,50 +1471,51 @@
   }
 
   function beginDragFromBoard(p, r, c, e) {
-  e.preventDefault();
-  const coords = getEventCoords(e);
-  dragging = {
-    src: "board",
-    item: p,
-    originCell: { r, c },
-    ghost: createGhost(p, coords.pageX, coords.pageY),
-  };
-  setHeld(dragging.item, true);
+    e.preventDefault();
+    const coords = getEventCoords(e);
+    dragging = {
+      src: "board",
+      item: p,
+      originCell: { r, c },
+      ghost: createGhost(p, coords.pageX, coords.pageY),
+    };
+    setHeld(dragging.item, true);
 
-  // Очищаем ячейку для ВСЕХ устройств
-  cells[r][c].piece = null;
-  updateCellVisual(r, c);
+    // Для desktop очищаем ячейку
+    if (!isMobile) {
+      cells[r][c].piece = null;
+      updateCellVisual(r, c);
+    }
 
-  if (isMobile) {
-    document.addEventListener("touchmove", onDragMove, { passive: false });
-    document.addEventListener("touchend", onDragEnd, { passive: false });
-    document.addEventListener("touchcancel", onDragEnd, { passive: false });
-  } else {
-    document.addEventListener("mousemove", onDragMove);
-    document.addEventListener("mouseup", onDragEnd);
+    if (isMobile) {
+      document.addEventListener("touchmove", onDragMove, { passive: false });
+      document.addEventListener("touchend", onDragEnd, { passive: false });
+      document.addEventListener("touchcancel", onDragEnd, { passive: false });
+    } else {
+      document.addEventListener("mousemove", onDragMove);
+      document.addEventListener("mouseup", onDragEnd);
+    }
   }
-}
 
- function onDragMove(e) {
-  if (!dragging) return;
-  e.preventDefault();
-  const coords = getEventCoords(e);
-  dragging.ghost.style.left = coords.pageX + "px";
-  dragging.ghost.style.top = coords.pageY + "px";
+  function onDragMove(e) {
+    if (!dragging) return;
+    e.preventDefault();
+    const coords = getEventCoords(e);
+    dragging.ghost.style.left = coords.pageX + "px";
+    dragging.ghost.style.top = coords.pageY + "px";
 
-  const cellEl = findCellAt(coords.x, coords.y);
-  if (hoverCell && (!cellEl || hoverCell.el !== cellEl)) {
-    hoverCell.el.classList.remove("drag-over");
-    hoverCell = null;
+    const cellEl = findCellAt(coords.x, coords.y);
+    if (hoverCell && (!cellEl || hoverCell.el !== cellEl)) {
+      hoverCell.el.classList.remove("drag-over");
+      hoverCell = null;
+    }
+    if (cellEl && !isMobile) {
+      const r = +cellEl.dataset.r,
+        c = +cellEl.dataset.c;
+      hoverCell = { r, c, el: cellEl };
+      cellEl.classList.add("drag-over");
+    }
   }
-  // Убрать условие !isMobile для показа hover эффекта на всех устройствах
-  if (cellEl) {
-    const r = +cellEl.dataset.r,
-      c = +cellEl.dataset.c;
-    hoverCell = { r, c, el: cellEl };
-    cellEl.classList.add("drag-over");
-  }
-}
 
   function onDragEnd(e) {
     if (!dragging) return;
