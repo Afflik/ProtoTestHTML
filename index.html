@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-<title>Dice Field — Realistic Dice Roll, Fixed String Animation</title>
+<title>Dice Field — Smaller Dice, Bright CD Bar, Centered Positioning</title>
 <style>
   :root{
     /* Light theme colors */
@@ -45,7 +45,7 @@
     color:var(--text); font-family:Inter,system-ui,Segoe UI,Roboto,Helvetica,Arial,sans-serif;
   }
 
-  .wrap{ min-height:100vh; display:grid; grid-template-rows:auto 1fr auto; }
+  .wrap{ min-height:100vh; display:grid; grid-template-rows:auto 1fr auto auto auto; }
 
   header{
     position:sticky; top:0; z-index:10;
@@ -56,14 +56,6 @@
   }
   .title{font-weight:800; letter-spacing:.4px; color:var(--text)}
   .spacer{flex:1}
-  .btn{
-    background:linear-gradient(180deg,#ffffff,#f1f5f9);
-    border:1px solid #cbd5e1; color:var(--text); padding:10px 14px; border-radius:12px;
-    cursor:pointer; box-shadow: 0 1px 3px rgba(100,116,139,.1);
-    transition:.15s transform, .2s background, .2s box-shadow;
-  }
-  .btn:hover{transform:translateY(-1px); background:linear-gradient(180deg,#f8fafc,#e2e8f0); box-shadow: 0 4px 6px rgba(100,116,139,.15)}
-  .btn:active{transform:translateY(0)}
   .pill{
     padding:6px 10px; border-radius:999px; font-size:12px; color:var(--muted);
     background:rgba(241,245,249,.8); border:1px solid rgba(100,116,139,.2);
@@ -156,10 +148,12 @@
 
   .piece{
     position:absolute; 
-    top:0; left:0;
-    width:var(--cell-size); 
-    height:var(--cell-size);
-    border-radius:6px;
+    /* кубики уменьшены еще на 10% (теперь 81% от размера ячейки) и идеально центрированы */
+    top: calc(var(--cell-size) * 0.095);
+    left: calc(var(--cell-size) * 0.095);
+    width: calc(var(--cell-size) * 0.81);
+    height: calc(var(--cell-size) * 0.81);
+    border-radius:5px;
     display:flex; align-items:center; justify-content:center; text-align:center;
     font-weight:700; letter-spacing:.2px; user-select:none; cursor:grab;
     transition: transform .12s ease, box-shadow .12s ease, filter .12s ease;
@@ -170,7 +164,7 @@
   .piece:active{transform:translateY(0)}
 
   .die{
-    color:#374151; font-size:14px; position:relative;
+    color:#374151; font-size:12px; position:relative; /* еще уменьшен размер шрифта */
     display:flex; align-items:center; justify-content:center;
     border:1px solid rgba(100,116,139,.3);
   }
@@ -180,81 +174,64 @@
     line-height:1;
   }
   .cdbar{
-    position:absolute; left:3px; right:3px; bottom:3px; height:3px; border-radius:999px;
+    position:absolute; left:2px; right:2px; bottom:2px; height:3px; border-radius:999px;
     background: #ffffff;
     overflow:hidden; border:1px solid rgba(100,116,139,.3);
   }
   .cdbar .fill{
-    height:100%; width:0%; background: #eab308;
+    height:100%; width:0%; background: #ffd700; /* ярко желтый цвет */
     transition: width .08s linear;
+    box-shadow: 0 0 4px rgba(255,215,0,.6); /* золотистое свечение */
   }
 
   .acc{ 
     color:#374151; font-weight:700; text-shadow:none; position:relative;
-    display:flex; align-items:center; justify-content:center; font-size:12px;
+    display:flex; align-items:center; justify-content:center; font-size:10px; /* уменьшен размер шрифта */
     border:1px solid rgba(100,116,139,.3);
-    width: calc(var(--cell-size) * 1.1);
-    height: calc(var(--cell-size) * 1.1);
-    top: calc(var(--cell-size) * -0.05);
-    left: calc(var(--cell-size) * -0.05);
+    /* усилители остаются 99% и идеально центрированы */
+    width: calc(var(--cell-size) * 0.99);
+    height: calc(var(--cell-size) * 0.99);
+    top: calc(var(--cell-size) * 0.005);
+    left: calc(var(--cell-size) * 0.005);
   }
   .acc.metronome{
     background: var(--metronome);
   }
   .acc.string{
     background: var(--string);
-    /* убираем постоянную анимацию - будет добавляться через JS */
   }
   
-  /* Анимация пульсации для струн на поле (добавляется через JS) */
+  /* Анимация пульсации для струн на поле */
   .acc.string.field-pulse{
-    animation: stringAccPulse 1.5s ease-in-out infinite;
+    animation: stringAccSizePulse 1.5s ease-in-out infinite;
   }
-  @keyframes stringAccPulse{
-    0%{transform: translate(calc(var(--cell-size) * -0.05), calc(var(--cell-size) * -0.05)) scale(.98)}
-    50%{transform: translate(calc(var(--cell-size) * -0.05), calc(var(--cell-size) * -0.05)) scale(1.02)}
-    100%{transform: translate(calc(var(--cell-size) * -0.05), calc(var(--cell-size) * -0.05)) scale(.98)}
+  @keyframes stringAccSizePulse{
+    0%{transform: translate(calc(var(--cell-size) * 0.005), calc(var(--cell-size) * 0.005)) scale(.95)}
+    50%{transform: translate(calc(var(--cell-size) * 0.005), calc(var(--cell-size) * 0.005)) scale(1.05)}
+    100%{transform: translate(calc(var(--cell-size) * 0.005), calc(var(--cell-size) * 0.005)) scale(.95)}
   }
 
-  .acc.metronome.pushL{ transform: translate(calc(var(--cell-size) * -0.05 - 2px), calc(var(--cell-size) * -0.05)); }
-  .acc.metronome.pushR{ transform: translate(calc(var(--cell-size) * -0.05 + 2px), calc(var(--cell-size) * -0.05)); }
-  .acc.metronome.pushU{ transform: translate(calc(var(--cell-size) * -0.05), calc(var(--cell-size) * -0.05 - 2px)); }
-  .acc.metronome.pushD{ transform: translate(calc(var(--cell-size) * -0.05), calc(var(--cell-size) * -0.05 + 2px)); }
+  .acc.metronome.pushL{ transform: translate(calc(var(--cell-size) * 0.005 - 2px), calc(var(--cell-size) * 0.005)); }
+  .acc.metronome.pushR{ transform: translate(calc(var(--cell-size) * 0.005 + 2px), calc(var(--cell-size) * 0.005)); }
+  .acc.metronome.pushU{ transform: translate(calc(var(--cell-size) * 0.005), calc(var(--cell-size) * 0.005 - 2px)); }
+  .acc.metronome.pushD{ transform: translate(calc(var(--cell-size) * 0.005), calc(var(--cell-size) * 0.005 + 2px)); }
 
-  /* Реалистичная анимация броска кубика */
-  .dice-roll{ 
-    animation: diceRoll .8s cubic-bezier(.25,.46,.45,.94);
-    transform-origin: center center;
+  /* Анимация встряски для кубиков с учетом нового позиционирования */
+  .dice-shake{ 
+    animation: diceShake .4s ease-in-out;
   }
-  @keyframes diceRoll{
-    0% { 
-      transform: translateY(0) rotateX(0deg) rotateY(0deg) scale(1);
-      box-shadow: 0 2px 4px rgba(100,116,139,.2), inset 0 1px 0 rgba(255,255,255,.5);
-    }
-    15% { 
-      transform: translateY(-12px) rotateX(180deg) rotateY(90deg) scale(1.1);
-      box-shadow: 0 8px 16px rgba(100,116,139,.3), inset 0 1px 0 rgba(255,255,255,.5);
-    }
-    35% { 
-      transform: translateY(-18px) rotateX(360deg) rotateY(180deg) scale(1.15);
-      box-shadow: 0 12px 20px rgba(100,116,139,.4), inset 0 1px 0 rgba(255,255,255,.5);
-    }
-    50% { 
-      transform: translateY(-15px) rotateX(540deg) rotateY(270deg) scale(1.1);
-      box-shadow: 0 10px 18px rgba(100,116,139,.35), inset 0 1px 0 rgba(255,255,255,.5);
-    }
-    70% { 
-      transform: translateY(-8px) rotateX(720deg) rotateY(360deg) scale(1.05);
-      box-shadow: 0 6px 12px rgba(100,116,139,.25), inset 0 1px 0 rgba(255,255,255,.5);
-    }
-    85% { 
-      transform: translateY(-2px) rotateX(720deg) rotateY(360deg) scale(1.02);
-      box-shadow: 0 4px 8px rgba(100,116,139,.2), inset 0 1px 0 rgba(255,255,255,.5);
-    }
-    100% { 
-      transform: translateY(0) rotateX(720deg) rotateY(360deg) scale(1);
-      box-shadow: 0 2px 4px rgba(100,116,139,.2), inset 0 1px 0 rgba(255,255,255,.5);
-    }
+  @keyframes diceShake{
+    0% { transform: translate(calc(var(--cell-size) * 0.095), calc(var(--cell-size) * 0.095)) translateX(0) translateY(0); }
+    10% { transform: translate(calc(var(--cell-size) * 0.095), calc(var(--cell-size) * 0.095)) translateX(-2px) translateY(-1px); }
+    20% { transform: translate(calc(var(--cell-size) * 0.095), calc(var(--cell-size) * 0.095)) translateX(2px) translateY(1px); }
+    30% { transform: translate(calc(var(--cell-size) * 0.095), calc(var(--cell-size) * 0.095)) translateX(-1px) translateY(-2px); }
+    40% { transform: translate(calc(var(--cell-size) * 0.095), calc(var(--cell-size) * 0.095)) translateX(1px) translateY(2px); }
+    50% { transform: translate(calc(var(--cell-size) * 0.095), calc(var(--cell-size) * 0.095)) translateX(-2px) translateY(1px); }
+    60% { transform: translate(calc(var(--cell-size) * 0.095), calc(var(--cell-size) * 0.095)) translateX(2px) translateY(-1px); }
+    70% { transform: translate(calc(var(--cell-size) * 0.095), calc(var(--cell-size) * 0.095)) translateX(-1px) translateY(2px); }
+    80% { transform: translate(calc(var(--cell-size) * 0.095), calc(var(--cell-size) * 0.095)) translateX(1px) translateY(-2px); }
+    90% { transform: translate(calc(var(--cell-size) * 0.095), calc(var(--cell-size) * 0.095)) translateX(-1px) translateY(1px); }
+    100% { transform: translate(calc(var(--cell-size) * 0.095), calc(var(--cell-size) * 0.095)) translateX(0) translateY(0); }
   }
   
   .spark{ position:absolute; inset:0; pointer-events:none; }
@@ -266,11 +243,27 @@
   }
   @keyframes beam{ 0%{opacity:0; transform:scaleX(0)} 25%{opacity:1; transform:scaleX(.65)} 100%{opacity:0; transform:scaleX(1)} }
 
+  /* Кнопки между сеткой и магазином */
+  .controls{
+    display:flex; align-items:center; justify-content:center; gap:12px; 
+    padding:16px; background:rgba(255,255,255,.5);
+    border-top:1px solid rgba(100,116,139,.1);
+    border-bottom:1px solid rgba(100,116,139,.1);
+  }
+  .btn{
+    background:linear-gradient(180deg,#ffffff,#f1f5f9);
+    border:1px solid #cbd5e1; color:var(--text); padding:10px 14px; border-radius:12px;
+    cursor:pointer; box-shadow: 0 1px 3px rgba(100,116,139,.1);
+    transition:.15s transform, .2s background, .2s box-shadow;
+    font-weight:600;
+  }
+  .btn:hover{transform:translateY(-1px); background:linear-gradient(180deg,#f8fafc,#e2e8f0); box-shadow: 0 4px 6px rgba(100,116,139,.15)}
+  .btn:active{transform:translateY(0)}
+
   .store-wrap{
     position:sticky; bottom:0; z-index:9;
     padding:12px 16px 16px; 
     background: linear-gradient(180deg, rgba(248,250,252,0) 0%, rgba(248,250,252,.95) 20%, rgba(248,250,252,1) 100%);
-    border-top:1px solid rgba(100,116,139,.2);
   }
   .store-panel{
     border-radius:16px; background:var(--panel);
@@ -303,15 +296,18 @@
   }
 
   .ghost{
-    position:fixed; width: var(--cell-size); height: var(--cell-size);
-    margin-left: calc(-1 * var(--cell-size) / 2);
-    margin-top:  calc(-1 * var(--cell-size) / 2);
-    border-radius:6px; pointer-events:none; opacity:.95; z-index:9999;
+    position:fixed; 
+    /* ghost уменьшен до размера кубиков */
+    width: calc(var(--cell-size) * 0.81); 
+    height: calc(var(--cell-size) * 0.81);
+    margin-left: calc(-1 * var(--cell-size) * 0.405);
+    margin-top:  calc(-1 * var(--cell-size) * 0.405);
+    border-radius:5px; pointer-events:none; opacity:.95; z-index:9999;
     box-shadow: 0 4px 12px rgba(100,116,139,.3), inset 0 1px 0 rgba(255,255,255,.5);
     border:1px solid rgba(100,116,139,.3);
-    display:flex; align-items:center; justify-content:center; color:#374151; font-weight:700; font-size:12px;
+    display:flex; align-items:center; justify-content:center; color:#374151; font-weight:700; font-size:10px;
   }
-  .ghost .digit{ font-size:12px; text-shadow: 0 1px 2px rgba(255,255,255,.8); }
+  .ghost .digit{ font-size:10px; text-shadow: 0 1px 2px rgba(255,255,255,.8); }
 
   /* Pastel dice colors */
   .die[data-type="BLASTER"], .preview[data-type="BLASTER"] { background: var(--die-cyan); }
@@ -329,8 +325,6 @@
     <div class="title">Dice Field — Prototype</div>
     <div class="pill">7×7 • Drag & Drop • Merge to Lv3</div>
     <div class="spacer"></div>
-    <button class="btn" id="refreshStoreBtn">Refresh Store</button>
-    <button class="btn" id="clearBoardBtn">Clear Board</button>
     <div class="pill">All purchases: Free</div>
   </header>
 
@@ -339,6 +333,11 @@
       <div class="board-title">Your Field</div>
       <div class="board" id="board"></div>
     </div>
+  </div>
+
+  <div class="controls">
+    <button class="btn" id="refreshStoreBtn">🔄 Refresh Store</button>
+    <button class="btn" id="clearBoardBtn">🗑️ Clear Board</button>
   </div>
 
   <div class="store-wrap">
@@ -882,15 +881,13 @@
     const cell=cells[p.r][p.c]; if(!cell) return;
     const node=cell.el.querySelector('.piece');
     if(node){
-      // Новая реалистичная анимация броска
-      node.classList.remove('dice-roll'); void node.offsetWidth; node.classList.add('dice-roll');
+      // Простая анимация встряски
+      node.classList.remove('dice-shake'); void node.offsetWidth; node.classList.add('dice-shake');
       
       const digit=node.querySelector('.digit'); 
       if(digit) {
-        // Показываем новое значение в середине анимации
-        setTimeout(() => {
-          digit.textContent=String(p.value);
-        }, 400);
+        // Показываем новое значение сразу
+        digit.textContent=String(p.value);
       }
       
       const s=document.createElement('div'); s.className='spark';
