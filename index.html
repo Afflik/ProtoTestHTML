@@ -69,7 +69,7 @@
   .wrap{ 
     min-height: 100vh; 
     display: grid; 
-    grid-template-rows: auto 1fr auto auto;
+    grid-template-rows: auto 1fr auto;
     overscroll-behavior: none;
   }
 
@@ -314,24 +314,6 @@
   }
   @keyframes beam{ 0%{opacity:0; transform:scaleX(0)} 25%{opacity:1; transform:scaleX(.65)} 100%{opacity:0; transform:scaleX(1)} }
 
-  .controls{
-    display:flex; align-items:center; justify-content:center; gap:8px; 
-    padding:12px; background:rgba(255,255,255,.5);
-    border-top:1px solid rgba(100,116,139,.1);
-    border-bottom:1px solid rgba(100,116,139,.1);
-  }
-  .btn{
-    background:linear-gradient(180deg,#ffffff,#f1f5f9);
-    border:1px solid #cbd5e1; color:var(--text); padding:8px 12px; border-radius:12px;
-    cursor:pointer; box-shadow: 0 1px 3px rgba(100,116,139,.1);
-    transition:.15s transform, .2s background, .2s box-shadow;
-    font-weight:600; font-size:13px;
-    min-height: 44px;
-    touch-action: manipulation;
-  }
-  .btn:hover{transform:translateY(-1px); background:linear-gradient(180deg,#f8fafc,#e2e8f0); box-shadow: 0 4px 6px rgba(100,116,139,.15)}
-  .btn:active{transform:translateY(0)}
-
   .store-wrap{
     position:sticky; bottom:0; z-index:9;
     padding:8px 12px 12px; 
@@ -352,7 +334,7 @@
     font-size: 14px;
   }
   
-  /* Информация об усилителях в магазине */
+  /* Информация об усилителях и кнопки управления */
   .store-info {
     margin-bottom: 12px;
     padding: 8px;
@@ -369,7 +351,7 @@
     color: var(--muted);
   }
   .enhancer-desc:last-child {
-    margin-bottom: 0;
+    margin-bottom: 8px;
   }
   .enhancer-icon {
     width: 16px;
@@ -385,6 +367,25 @@
   }
   .enhancer-icon.metronome { background: var(--metronome); }
   .enhancer-icon.string { background: var(--string); }
+
+  .store-controls{
+    display:flex; align-items:center; justify-content:center; gap:8px; 
+    padding-top: 8px;
+    border-top: 1px solid rgba(100,116,139,.1);
+  }
+  .btn{
+    background:linear-gradient(180deg,#ffffff,#f1f5f9);
+    border:1px solid #cbd5e1; color:var(--text); padding:6px 10px; border-radius:12px;
+    cursor:pointer; box-shadow: 0 1px 3px rgba(100,116,139,.1);
+    transition:.15s transform, .2s background, .2s box-shadow;
+    font-weight:600; font-size:12px;
+    min-height: 36px;
+    touch-action: manipulation;
+    flex: 1;
+    max-width: 120px;
+  }
+  .btn:hover{transform:translateY(-1px); background:linear-gradient(180deg,#f8fafc,#e2e8f0); box-shadow: 0 4px 6px rgba(100,116,139,.15)}
+  .btn:active{transform:translateY(0)}
 
   .store-grid{ 
     display:grid; grid-template-columns: repeat(3, 80px); gap:8px; justify-content:center;
@@ -442,7 +443,7 @@
   @media (max-width: 480px) {
     .title { font-size: 14px; }
     .pill { font-size: 9px; padding: 3px 6px; }
-    .btn { font-size: 12px; padding: 6px 10px; }
+    .btn { font-size: 11px; padding: 5px 8px; min-height: 32px; }
     .store-grid { grid-template-columns: repeat(3, 70px); gap: 6px; }
     .slot { width: 70px; height: 70px; }
     .ghost { transform: scale(1.2); }
@@ -467,11 +468,6 @@
     </div>
   </div>
 
-  <div class="controls">
-    <button class="btn" id="refreshStoreBtn">🔄 Refresh</button>
-    <button class="btn" id="clearBoardBtn">🗑️ Clear</button>
-  </div>
-
   <div class="store-wrap">
     <div class="store-panel">
       <div class="store-head">Store</div>
@@ -483,6 +479,10 @@
         <div class="enhancer-desc">
           <div class="enhancer-icon string">↑</div>
           <span><strong>Strings</strong> — constantly speed up dice in direction</span>
+        </div>
+        <div class="store-controls">
+          <button class="btn" id="refreshStoreBtn">🔄 Refresh</button>
+          <button class="btn" id="clearBoardBtn">🗑️ Clear</button>
         </div>
       </div>
       <div class="store-grid" id="store"></div>
@@ -656,25 +656,20 @@
     el.className='cell';
     el.dataset.r=r; el.dataset.c=c;
     
-    // Mouse events
-    el.addEventListener('mouseenter', ()=>{
-      if(dragging && !isMobile){ hoverCell={r,c,el}; el.classList.add('drag-over'); }
-    });
-    el.addEventListener('mouseleave', ()=>{
-      if(hoverCell && hoverCell.el===el && !isMobile){ el.classList.remove('drag-over'); hoverCell=null; }
-    });
-    el.addEventListener('mousedown', (e)=>{
-      if(isMobile) return;
-      const p=getPieceAt(r,c); if(!p) return;
-      beginDragFromBoard(p,r,c,e);
-    });
-
-    // Touch events - только если на ячейке нет объекта
-    el.addEventListener('touchstart', (e)=>{
-      const p=getPieceAt(r,c); 
-      if(p) return; // Если есть объект, пусть его обработчик сработает
-      // Пустая ячейка - ничего не делаем
-    }, { passive: true });
+    // Только mouse события для desktop
+    if (!isMobile) {
+      el.addEventListener('mouseenter', ()=>{
+        if(dragging){ hoverCell={r,c,el}; el.classList.add('drag-over'); }
+      });
+      el.addEventListener('mouseleave', ()=>{
+        if(hoverCell && hoverCell.el===el){ el.classList.remove('drag-over'); hoverCell=null; }
+      });
+      el.addEventListener('mousedown', (e)=>{
+        const p=getPieceAt(r,c); if(!p) return;
+        beginDragFromBoard(p,r,c,e);
+      });
+    }
+    // Никаких touch событий на ячейках - только на объектах
 
     return el;
   }
@@ -727,15 +722,16 @@
     }
     if(p.held) node.classList.add('inactive');
     
-    // Mouse events
-    node.addEventListener('mousedown', (e)=>{
-      if(isMobile) return;
-      e.stopPropagation();
-      const pos=findPiece(p.id); if(!pos) return;
-      beginDragFromBoard(p,pos.r,pos.c,e);
-    });
+    // Mouse события для desktop
+    if (!isMobile) {
+      node.addEventListener('mousedown', (e)=>{
+        e.stopPropagation();
+        const pos=findPiece(p.id); if(!pos) return;
+        beginDragFromBoard(p,pos.r,pos.c,e);
+      });
+    }
 
-    // Touch events - исправлено для мгновенного начала drag
+    // Touch события для мобильных - СРАЗУ начинаем drag
     node.addEventListener('touchstart', (e)=>{
       e.preventDefault();
       e.stopPropagation();
@@ -807,10 +803,11 @@
         }
         
         // Mouse events
-        slot.addEventListener('mousedown', (e)=> {
-          if(isMobile) return;
-          beginDragFromStore(it,idx,e);
-        });
+        if (!isMobile) {
+          slot.addEventListener('mousedown', (e)=> {
+            beginDragFromStore(it,idx,e);
+          });
+        }
 
         // Touch events
         slot.addEventListener('touchstart', (e)=> {
@@ -888,7 +885,7 @@
     if(hoverCell && (!cellEl || hoverCell.el!==cellEl)){
       hoverCell.el.classList.remove('drag-over'); hoverCell=null;
     }
-    if(cellEl){
+    if(cellEl && !isMobile){
       const r=+cellEl.dataset.r, c=+cellEl.dataset.c;
       hoverCell={r,c,el:cellEl}; cellEl.classList.add('drag-over');
     }
