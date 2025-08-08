@@ -638,7 +638,7 @@
       const centerX = rect.left + rect.width / 2;
       const centerY = rect.top + rect.height / 2;
       
-      const margin = isMobile ? 12 : 4; // Увеличен margin для мобильных
+      const margin = isMobile ? 12 : 4;
       if (x >= rect.left - margin && x <= rect.right + margin && 
           y >= rect.top - margin && y <= rect.bottom + margin) {
         const distance = Math.sqrt((x - centerX) ** 2 + (y - centerY) ** 2);
@@ -731,21 +731,24 @@
       });
     }
 
-    // Touch события ТОЛЬКО на объектах - немедленно начинаем drag
+    // Touch события для мобильных
     node.addEventListener('touchstart', handleTouchStart, { passive: false });
     
     function handleTouchStart(e) {
       e.preventDefault();
       e.stopPropagation();
-      e.stopImmediatePropagation(); // Останавливаем все остальные обработчики
+      e.stopImmediatePropagation();
       
       const pos=findPiece(p.id); 
       if(!pos) return;
       
-      // Немедленно начинаем drag без задержек
-      setTimeout(() => {
-        beginDragFromBoard(p, pos.r, pos.c, e);
-      }, 0);
+      // Немедленно удаляем визуал
+      const cellEl = cells[pos.r][pos.c].el;
+      const oldPiece = cellEl.querySelector('.piece');
+      if (oldPiece) oldPiece.remove();
+      
+      // Начинаем drag
+      beginDragFromBoard(p, pos.r, pos.c, e);
     }
 
     return node;
@@ -821,12 +824,7 @@
         // Touch события для мобильных
         slot.addEventListener('touchstart', (e)=> {
           e.preventDefault();
-          e.stopPropagation();
-          e.stopImmediatePropagation();
-          
-          setTimeout(() => {
-            beginDragFromStore(it,idx,e);
-          }, 0);
+          beginDragFromStore(it,idx,e);
         }, { passive: false });
       }else{
         prev.style.background='linear-gradient(135deg,#f1f5f9,#cbd5e1)';
@@ -876,7 +874,12 @@
     const coords = getEventCoords(e);
     dragging={src:'board', item:p, originCell:{r,c}, ghost:createGhost(p,coords.pageX,coords.pageY)};
     setHeld(dragging.item,true);
-    cells[r][c].piece=null; updateCellVisual(r,c);
+    
+    // Немедленно очищаем ячейку
+    cells[r][c].piece = null;
+    const cellEl = cells[r][c].el;
+    const oldPiece = cellEl.querySelector('.piece');
+    if (oldPiece) oldPiece.remove();
     
     if(isMobile) {
       document.addEventListener('touchmove', onDragMove, { passive: false });
