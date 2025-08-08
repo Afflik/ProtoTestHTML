@@ -24,6 +24,7 @@
     /* Pastel accelerators */
     --metronome:#fef3c7;
     --string:#e0e7ff;
+    --corner:#f3e8ff;
 
     --cell-bg1:#f1f5f9;
     --cell-bg2:#e2e8f0;
@@ -33,6 +34,7 @@
 
     --glow-metro: rgba(251,191,36,.8);
     --glow-string: rgba(129,140,248,.8);
+    --glow-corner: rgba(139,92,246,.8);
     --glow-strong: 0 0 15px;
 
     --cell-size:50px;
@@ -89,7 +91,7 @@
 
   .center{ 
     display:grid; place-items:center; 
-    padding:24px 8px 80px; /* Увеличен padding сверху и снизу */
+    padding:24px 8px 80px;
     max-width: 100vw;
     overflow: hidden;
   }
@@ -154,11 +156,26 @@
       0 0 0 1px rgba(99,102,241,.4);
     animation: stringPulse 1.5s ease-in-out infinite;
   }
+  .coverage.corner{
+    border-color: #8b5cf6;
+    background: rgba(139,92,246,.2);
+    box-shadow: 
+      var(--glow-strong) var(--glow-corner),
+      inset 0 0 20px rgba(139,92,246,.3),
+      0 0 0 1px rgba(139,92,246,.4);
+    animation: cornerPulse 2s ease-in-out infinite;
+  }
   .coverage.string.level-2{
     animation: stringPulse 1.2s ease-in-out infinite;
   }
   .coverage.string.level-3{
     animation: stringPulse 0.9s ease-in-out infinite;
+  }
+  .coverage.corner.level-2{
+    animation: cornerPulse 1.7s ease-in-out infinite;
+  }
+  .coverage.corner.level-3{
+    animation: cornerPulse 1.4s ease-in-out infinite;
   }
   .coverage.active-side{ 
     animation: activeSide 0.9s ease-out; 
@@ -168,6 +185,15 @@
       0 0 25px rgba(249,115,22,.8),
       inset 0 0 25px rgba(249,115,22,.4),
       0 0 0 2px rgba(249,115,22,.6);
+  }
+  .coverage.corner-echo{
+    animation: cornerEcho 1.2s ease-out;
+    background: rgba(139,92,246,.5);
+    border-color: #a855f7;
+    box-shadow: 
+      0 0 30px rgba(168,85,247,.9),
+      inset 0 0 30px rgba(168,85,247,.5),
+      0 0 0 2px rgba(168,85,247,.7);
   }
   
   @keyframes activeSide{ 
@@ -179,6 +205,16 @@
     0%{opacity:.7; transform:scale(.98); border-color: #6366f1} 
     50%{opacity:1; transform:scale(1.02); border-color: #8b5cf6} 
     100%{opacity:.7; transform:scale(.98); border-color: #6366f1} 
+  }
+  @keyframes cornerPulse{ 
+    0%{opacity:.7; transform:scale(.98); border-color: #8b5cf6} 
+    50%{opacity:1; transform:scale(1.02); border-color: #a855f7} 
+    100%{opacity:.7; transform:scale(.98); border-color: #8b5cf6} 
+  }
+  @keyframes cornerEcho{
+    0%{opacity:0; transform:scale(.9)}
+    30%{opacity:1; transform:scale(1.1)}
+    100%{opacity:0; transform:scale(1.2)}
   }
 
   .outline{
@@ -203,12 +239,25 @@
       inset 0 0 15px rgba(129,140,248,.3);
     animation: pulseS 900ms ease-out;
   }
+  .outline.corner{
+    border-color:#8b5cf6;
+    background: rgba(139,92,246,.3);
+    box-shadow: 
+      0 0 20px rgba(139,92,246,.6),
+      inset 0 0 15px rgba(139,92,246,.3);
+    animation: pulseC 900ms ease-out;
+  }
   @keyframes pulseM{ 
     0%{opacity:0; transform:scale(.9)} 
     40%{opacity:1; transform:scale(1.05)} 
     100%{opacity:0; transform:scale(1)} 
   }
   @keyframes pulseS{ 
+    0%{opacity:0; transform:scale(.9)} 
+    40%{opacity:1; transform:scale(1.05)} 
+    100%{opacity:0; transform:scale(1)} 
+  }
+  @keyframes pulseC{ 
     0%{opacity:0; transform:scale(.9)} 
     40%{opacity:1; transform:scale(1.05)} 
     100%{opacity:0; transform:scale(1)} 
@@ -273,13 +322,24 @@
   .acc.string{
     background: var(--string);
   }
+  .acc.corner{
+    background: var(--corner);
+  }
   
   .acc.string.field-pulse{
     animation: stringAccSizePulse 1.5s ease-in-out infinite;
   }
+  .acc.corner.field-pulse{
+    animation: cornerAccSizePulse 2s ease-in-out infinite;
+  }
   @keyframes stringAccSizePulse{
     0%{transform: translate(-50%, -50%) scale(.95)}
     50%{transform: translate(-50%, -50%) scale(1.05)}
+    100%{transform: translate(-50%, -50%) scale(.95)}
+  }
+  @keyframes cornerAccSizePulse{
+    0%{transform: translate(-50%, -50%) scale(.95)}
+    50%{transform: translate(-50%, -50%) scale(1.08)}
     100%{transform: translate(-50%, -50%) scale(.95)}
   }
 
@@ -287,6 +347,15 @@
   .acc.metronome.pushR{ transform: translate(-50%, -50%) translateX(2px); }
   .acc.metronome.pushU{ transform: translate(-50%, -50%) translateY(-2px); }
   .acc.metronome.pushD{ transform: translate(-50%, -50%) translateY(2px); }
+
+  .acc.corner.echo-pulse{ 
+    animation: cornerEchoPulse .8s ease-out;
+  }
+  @keyframes cornerEchoPulse{
+    0%{transform: translate(-50%, -50%) scale(.95)}
+    40%{transform: translate(-50%, -50%) scale(1.15)}
+    100%{transform: translate(-50%, -50%) scale(.95)}
+  }
 
   .dice-shake{ 
     animation: diceShake .4s ease-in-out;
@@ -334,7 +403,6 @@
     font-size: 14px;
   }
   
-  /* Информация об усилителях и кнопки управления */
   .store-info {
     margin-bottom: 12px;
     padding: 8px;
@@ -367,6 +435,7 @@
   }
   .enhancer-icon.metronome { background: var(--metronome); }
   .enhancer-icon.string { background: var(--string); }
+  .enhancer-icon.corner { background: var(--corner); }
 
   .store-controls{
     display:flex; align-items:center; justify-content:center; gap:8px; 
@@ -449,7 +518,7 @@
     .ghost { transform: scale(1.2); }
     .enhancer-desc { font-size: 9px; }
     .enhancer-icon { width: 14px; height: 14px; font-size: 6px; }
-    .center { padding: 16px 8px 60px; } /* Меньше padding на мобильных */
+    .center { padding: 16px 8px 60px; }
   }
 </style>
 </head>
@@ -481,6 +550,10 @@
           <div class="enhancer-icon string">↑</div>
           <span><strong>Strings</strong> — constantly speed up dice in direction</span>
         </div>
+        <div class="enhancer-desc">
+          <div class="enhancer-icon corner">L</div>
+          <span><strong>Corner</strong> — echoes dice actions in L-shaped area</span>
+        </div>
         <div class="store-controls">
           <button class="btn" id="refreshStoreBtn">🔄 Refresh</button>
           <button class="btn" id="clearBoardBtn">🗑️ Clear</button>
@@ -506,15 +579,17 @@
     {key:'MAGMA',   color:'var(--die-red)',   label:'Magma'},
     {key:'SNIPER',  color:'var(--die-teal)',  label:'Sniper'},
   ];
-  const ACC_TYPES = { METRONOME:'METRONOME', STRING:'STRING' };
+  const ACC_TYPES = { METRONOME:'METRONOME', STRING:'STRING', CORNER:'CORNER' };
   const rand=(a,b)=>Math.random()*(b-a)+a;
   const randInt=(a,b)=>Math.floor(rand(a,b+1));
 
   function metronomeSpec(lv){ return { tickReduce:[0,0.30,0.45,0.60][lv], distance: lv }; }
   function stringDist(lv){ return [0,2,4,6][lv]; }
   function stringPct(lv){ return [0,.10,.15,.20][lv]; }
+  function cornerDist(lv){ return [0,1,2,3][lv]; }
 
   function dirArrow(d){ return ({U:'↑',D:'↓',L:'←',R:'→'})[d] || '?'; }
+  function cornerArrow(d1,d2){ return ({UD:'⌐',DU:'⌐',LR:'⌐',RL:'⌐',UL:'⌜',LU:'⌜',UR:'⌝',RU:'⌝',DL:'⌞',LD:'⌞',DR:'⌟',RD:'⌟'})[d1+d2] || 'L'; }
   function oppositeOf(dir){ return {L:'R', R:'L', U:'D', D:'U'}[dir] || null; }
   function rollDieValue(level){ if(level<=1) return randInt(1,2); if(level===2) return randInt(2,4); return randInt(3,6); }
 
@@ -547,7 +622,9 @@
 
   let coverageLayerM = [];
   let coverageLayerS = [];
+  let coverageLayerC = [];
   let activeSideMap = [];
+  let cornerEchoMap = [];
 
   // Mobile touch support
   let isMobile = 'ontouchstart' in window;
@@ -555,7 +632,9 @@
   function resetCoverage(){
     coverageLayerM = Array.from({length:GRID_SIZE},()=>Array(GRID_SIZE).fill(false));
     coverageLayerS = Array.from({length:GRID_SIZE},()=>Array(GRID_SIZE).fill(false));
+    coverageLayerC = Array.from({length:GRID_SIZE},()=>Array(GRID_SIZE).fill(false));
     activeSideMap = Array.from({length:GRID_SIZE},()=>Array(GRID_SIZE).fill(false));
+    cornerEchoMap = Array.from({length:GRID_SIZE},()=>Array(GRID_SIZE).fill(false));
   }
   
   function applyCoverage(){
@@ -576,6 +655,15 @@
           }
           el.appendChild(k);
         }
+        if(coverageLayerC[r][c]){
+          const k=document.createElement('div'); k.className='coverage corner';
+          const cornerPiece = findCornerAffectingCell(r, c);
+          if(cornerPiece) {
+            k.classList.add(`level-${cornerPiece.level||1}`);
+          }
+          if(cornerEchoMap[r][c]) k.classList.add('corner-echo');
+          el.appendChild(k);
+        }
       }
     }
   }
@@ -586,6 +674,19 @@
         const dist = stringDist(p.level||1);
         const line=lineCellsFrom(p.r,p.c,p.dir,dist);
         for(const cell of line) {
+          if(cell.r === r && cell.c === c) return p;
+        }
+      }
+    }
+    return null;
+  }
+
+  function findCornerAffectingCell(r, c) {
+    for(const p of pieces) {
+      if(p.kind==='ACC' && p.accType===ACC_TYPES.CORNER) {
+        const dist = cornerDist(p.level||1);
+        const corner=cornerCellsFrom(p.r,p.c,p.dir1,p.dir2,dist);
+        for(const cell of corner) {
           if(cell.r === r && cell.c === c) return p;
         }
       }
@@ -613,6 +714,11 @@
         const dist = stringDist(p.level||1);
         const line=lineCellsFrom(p.r,p.c,p.dir,dist);
         for(const cell of line){ coverageLayerS[cell.r][cell.c]=true; }
+      }
+      if(p.kind==='ACC' && p.accType===ACC_TYPES.CORNER){
+        const dist = cornerDist(p.level||1);
+        const corner=cornerCellsFrom(p.r,p.c,p.dir1,p.dir2,dist);
+        for(const cell of corner){ coverageLayerC[cell.r][cell.c]=true; }
       }
     }
     applyCoverage();
@@ -710,13 +816,22 @@
       
       updateCooldownReference(p, fill);
     }else{
-      node.classList.add('acc', p.accType===ACC_TYPES.METRONOME?'metronome':'string');
+      node.classList.add('acc', p.accType.toLowerCase());
       const mark=document.createElement('div');
       mark.style.fontWeight='700';
-      mark.textContent=(p.accType===ACC_TYPES.METRONOME ? (p.orientation==='H'?'H':'V') : dirArrow(p.dir));
+      if(p.accType===ACC_TYPES.METRONOME){
+        mark.textContent=(p.orientation==='H'?'H':'V');
+      }else if(p.accType===ACC_TYPES.STRING){
+        mark.textContent=dirArrow(p.dir);
+      }else if(p.accType===ACC_TYPES.CORNER){
+        mark.textContent=cornerArrow(p.dir1,p.dir2);
+      }
       node.appendChild(mark);
       
       if(p.accType===ACC_TYPES.STRING && !p.held) {
+        node.classList.add('field-pulse');
+      }
+      if(p.accType===ACC_TYPES.CORNER && !p.held) {
         node.classList.add('field-pulse');
       }
     }
@@ -731,7 +846,7 @@
       });
     }
 
-    // Touch события для мобильных
+    // Touch события для мобильных - ИСПРАВЛЕННАЯ ВЕРСИЯ
     node.addEventListener('touchstart', handleTouchStart, { passive: false });
     
     function handleTouchStart(e) {
@@ -742,12 +857,19 @@
       const pos=findPiece(p.id); 
       if(!pos) return;
       
-      // Немедленно удаляем визуал
-      const cellEl = cells[pos.r][pos.c].el;
-      const oldPiece = cellEl.querySelector('.piece');
-      if (oldPiece) oldPiece.remove();
+      // КРИТИЧЕСКИ ВАЖНО: полностью очищаем состояние ячейки ПЕРЕД началом drag
+      cells[pos.r][pos.c].piece = null;
+      cells[pos.r][pos.c].el.classList.remove('occupied');
       
-      // Начинаем drag
+      // Удаляем визуальный элемент немедленно
+      const cellEl = cells[pos.r][pos.c].el;
+      const pieceEl = cellEl.querySelector('.piece');
+      if (pieceEl) pieceEl.remove();
+      
+      // Убираем элемент из массива pieces (чтобы не было дублирования)
+      pieces = pieces.filter(piece => piece.id !== p.id);
+      
+      // Теперь начинаем drag с уже очищенным состоянием
       beginDragFromBoard(p, pos.r, pos.c, e);
     }
 
@@ -768,14 +890,19 @@
   function makeStoreAcc(type){
     if(type===ACC_TYPES.METRONOME){
       return { kind:'ACC', accType:type, level:1, orientation:(Math.random()<0.5?'H':'V') };
-    }else{
+    }else if(type===ACC_TYPES.STRING){
       return { kind:'ACC', accType:type, level:1, dir:['U','D','L','R'][randInt(0,3)] };
+    }else if(type===ACC_TYPES.CORNER){
+      const dirs = [['U','L'],['U','R'],['D','L'],['D','R']];
+      const chosenDirs = dirs[randInt(0,3)];
+      return { kind:'ACC', accType:type, level:1, dir1:chosenDirs[0], dir2:chosenDirs[1] };
     }
   }
   
   function rollStore(){
     storeItems=[];
-    const accType = Math.random()<0.5?ACC_TYPES.METRONOME:ACC_TYPES.STRING;
+    const accTypes = [ACC_TYPES.METRONOME, ACC_TYPES.STRING, ACC_TYPES.CORNER];
+    const accType = accTypes[randInt(0,2)];
     storeItems.push(makeStoreAcc(accType));
     for(let i=0;i<2;i++){
       const t=currentDicePool[randInt(0,currentDicePool.length-1)];
@@ -795,7 +922,9 @@
       label.className='label';
       label.textContent = it
         ? (it.kind==='DIE' ? `${it.dieLabel} • Lv${it.level||1}` :
-            (it.accType===ACC_TYPES.METRONOME?`Metro (${it.orientation}) • Lv${it.level||1}`:`String (${dirArrow(it.dir)}) • Lv${it.level||1}`))
+            (it.accType===ACC_TYPES.METRONOME?`Metro (${it.orientation}) • Lv${it.level||1}`:
+            it.accType===ACC_TYPES.STRING?`String (${dirArrow(it.dir)}) • Lv${it.level||1}`:
+            `Corner (${cornerArrow(it.dir1,it.dir2)}) • Lv${it.level||1}`))
         : 'Empty';
       slot.appendChild(label);
 
@@ -808,9 +937,15 @@
           d.textContent=String(it.value);
           prev.appendChild(d);
         }else{
-          prev.classList.add('acc', it.accType===ACC_TYPES.METRONOME?'metronome':'string');
+          prev.classList.add('acc', it.accType.toLowerCase());
           const t=document.createElement('div'); t.style.fontWeight='700';
-          t.textContent = it.accType===ACC_TYPES.METRONOME ? (it.orientation==='H'?'H':'V') : dirArrow(it.dir);
+          if(it.accType===ACC_TYPES.METRONOME){
+            t.textContent = (it.orientation==='H'?'H':'V');
+          }else if(it.accType===ACC_TYPES.STRING){
+            t.textContent = dirArrow(it.dir);
+          }else if(it.accType===ACC_TYPES.CORNER){
+            t.textContent = cornerArrow(it.dir1,it.dir2);
+          }
           prev.appendChild(t);
         }
         
@@ -845,9 +980,15 @@
       const d=document.createElement('div'); d.className='digit'; d.textContent=String(item.value ?? rollDieValue(item.level||1));
       g.appendChild(d);
     }else{
-      g.classList.add('acc', item.accType===ACC_TYPES.METRONOME?'metronome':'string');
+      g.classList.add('acc', item.accType.toLowerCase());
       const t=document.createElement('div'); t.style.fontWeight='700';
-      t.textContent = item.accType===ACC_TYPES.METRONOME ? (item.orientation==='H'?'H':'V') : dirArrow(item.dir);
+      if(item.accType===ACC_TYPES.METRONOME){
+        t.textContent = (item.orientation==='H'?'H':'V');
+      }else if(item.accType===ACC_TYPES.STRING){
+        t.textContent = dirArrow(item.dir);
+      }else if(item.accType===ACC_TYPES.CORNER){
+        t.textContent = cornerArrow(item.dir1,item.dir2);
+      }
       g.appendChild(t);
     }
     document.body.appendChild(g);
@@ -875,11 +1016,12 @@
     dragging={src:'board', item:p, originCell:{r,c}, ghost:createGhost(p,coords.pageX,coords.pageY)};
     setHeld(dragging.item,true);
     
-    // Немедленно очищаем ячейку
-    cells[r][c].piece = null;
-    const cellEl = cells[r][c].el;
-    const oldPiece = cellEl.querySelector('.piece');
-    if (oldPiece) oldPiece.remove();
+    // НЕ очищаем ячейку здесь - она уже очищена в handleTouchStart для мобильных
+    // Для desktop очищаем как обычно
+    if (!isMobile) {
+      cells[r][c].piece = null;
+      updateCellVisual(r,c);
+    }
     
     if(isMobile) {
       document.addEventListener('touchmove', onDragMove, { passive: false });
@@ -995,8 +1137,10 @@
       if(a.accType!==b.accType) return false;
       if(a.accType===ACC_TYPES.METRONOME){
         return a.orientation===b.orientation;
-      }else{
+      }else if(a.accType===ACC_TYPES.STRING){
         return a.dir===b.dir;
+      }else if(a.accType===ACC_TYPES.CORNER){
+        return (a.dir1===b.dir1 && a.dir2===b.dir2) || (a.dir1===b.dir2 && a.dir2===b.dir1);
       }
     }
   }
@@ -1044,6 +1188,7 @@
   }
 
   function onDiceActivation(dieR, dieC) {
+    // Metronome logic
     for(const m of pieces) {
       if(m.kind==='ACC' && m.accType===ACC_TYPES.METRONOME && !m.held) {
         const spec = metronomeSpec(m.level||1);
@@ -1065,6 +1210,20 @@
         if(dieOnSide) {
           const oppositeSide = oppositeOf(dieOnSide);
           triggerMetronome(m, oppositeSide);
+        }
+      }
+    }
+
+    // Corner logic
+    for(const c of pieces) {
+      if(c.kind==='ACC' && c.accType===ACC_TYPES.CORNER && !c.held) {
+        const dist = cornerDist(c.level||1);
+        const cornerCells = cornerCellsFrom(c.r, c.c, c.dir1, c.dir2, dist);
+        
+        // Check if activated die is in corner area
+        const inCorner = cornerCells.some(cell => cell.r === dieR && cell.c === dieC);
+        if(inCorner) {
+          triggerCorner(c, dieR, dieC);
         }
       }
     }
@@ -1103,6 +1262,41 @@
     }, 900);
   }
 
+  function triggerCorner(corner, triggeredDieR, triggeredDieC) {
+    const dist = cornerDist(corner.level||1);
+    const cornerCells = cornerCellsFrom(corner.r, corner.c, corner.dir1, corner.dir2, dist);
+    
+    // Mark corner area for echo effect
+    for(const cell of cornerCells) { 
+      cornerEchoMap[cell.r][cell.c] = true; 
+    }
+    
+    // Corner pulse animation
+    const node = cells[corner.r][corner.c].el.querySelector('.piece.acc.corner');
+    if(node) {
+      node.classList.remove('echo-pulse');
+      void node.offsetWidth;
+      node.classList.add('echo-pulse');
+      setTimeout(() => { if(node) node.classList.remove('echo-pulse'); }, 800);
+    }
+    
+    // Get the die that triggered
+    const triggerDie = getPieceAt(triggeredDieR, triggeredDieC);
+    if(!triggerDie || triggerDie.kind !== 'DIE') return;
+    
+    // Echo the action after a short delay
+    setTimeout(() => {
+      doDieJump(triggerDie, true); // true = echo mode
+    }, 500);
+    
+    applyCoverage();
+    
+    setTimeout(() => {
+      for(const cell of cornerCells) { cornerEchoMap[cell.r][cell.c] = false; }
+      applyCoverage();
+    }, 1200);
+  }
+
   let lastT=performance.now(), accum=0;
   function loop(t){
     const dt=(t-lastT)/1000; lastT=t; accum+=dt;
@@ -1138,25 +1332,34 @@
     }
   }
 
-  function doDieJump(p){
-    p.cd = p.baseCD ?? 3.5;
-    p.value = rollDieValue(p.level||1);
+  function doDieJump(p, isEcho = false){
+    if(!isEcho) {
+      p.cd = p.baseCD ?? 3.5;
+      p.value = rollDieValue(p.level||1);
+    }
     
-    onDiceActivation(p.r, p.c);
+    if(!isEcho) {
+      onDiceActivation(p.r, p.c);
+    }
     
     const cell=cells[p.r][p.c]; if(!cell) return;
     const node=cell.el.querySelector('.piece');
     if(node){
       node.classList.remove('dice-shake'); void node.offsetWidth; node.classList.add('dice-shake');
       
-      const digit=node.querySelector('.digit'); 
-      if(digit) {
-        digit.textContent=String(p.value);
+      if(!isEcho) {
+        const digit=node.querySelector('.digit'); 
+        if(digit) {
+          digit.textContent=String(p.value);
+        }
       }
       
       const s=document.createElement('div'); s.className='spark';
       const b=document.createElement('div'); b.className='beam';
       b.style.transform=`rotate(${rand(0,360)}deg)`;
+      if(isEcho) {
+        b.style.background = 'linear-gradient(90deg, rgba(139,92,246,0), rgba(139,92,246,.8), rgba(139,92,246,0))';
+      }
       s.appendChild(b); node.appendChild(s);
       setTimeout(()=>s.remove(),600);
     }
@@ -1165,7 +1368,7 @@
   function addOutline(r,c,type){
     const cell=cells[r][c]; if(!cell) return;
     const ol=document.createElement('div');
-    ol.className='outline '+(type==='metronome'?'metronome':'string');
+    ol.className='outline '+(type==='metronome'?'metronome':(type==='string'?'string':'corner'));
     cell.el.appendChild(ol);
     setTimeout(()=>{ try{ol.remove();}catch(e){} },900);
   }
@@ -1178,6 +1381,14 @@
       if(rr<0||rr>=GRID_SIZE||cc<0||cc>=GRID_SIZE) break;
       out.push({r:rr,c:cc});
     }
+    return out;
+  }
+
+  function cornerCellsFrom(r, c, dir1, dir2, dist) {
+    const out = [];
+    const cells1 = lineCellsFrom(r, c, dir1, dist);
+    const cells2 = lineCellsFrom(r, c, dir2, dist);
+    out.push(...cells1, ...cells2);
     return out;
   }
 
