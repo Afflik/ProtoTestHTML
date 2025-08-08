@@ -1151,7 +1151,6 @@
         el.dataset.r = r;
         el.dataset.c = c;
 
-        // Обработчики для PC + mobile одинаковые
         el.addEventListener("mouseenter", () => {
           if (dragging) {
             hoverCell = { r, c, el };
@@ -1166,15 +1165,15 @@
           }
         });
         
-        // Unified обработчик для ячеек - работает и для mouse и для touch
-        el.addEventListener("mousedown", handleCellDragStart);
-        el.addEventListener("touchstart", handleCellDragStart, { passive: false });
-
-        function handleCellDragStart(e) {
+        // Единый обработчик для cell drag start
+        function handleCellStart(e) {
           const p = getPieceAt(r, c);
           if (!p) return;
           beginDragFromBoard(p, r, c, e);
         }
+        
+        el.addEventListener("mousedown", handleCellStart);
+        el.addEventListener("touchstart", handleCellStart, { passive: false });
 
         return el;
       }
@@ -1240,16 +1239,16 @@
         }
         if (p.held) node.classList.add("inactive");
 
-        // Unified обработчик для pieces - работает и для mouse и для touch
-        node.addEventListener("mousedown", handlePieceDragStart);
-        node.addEventListener("touchstart", handlePieceDragStart, { passive: false });
-
-        function handlePieceDragStart(e) {
+        // Единый обработчик для piece drag start
+        function handlePieceStart(e) {
           e.stopPropagation();
           const pos = findPiece(p.id);
           if (!pos) return;
           beginDragFromBoard(p, pos.r, pos.c, e);
         }
+        
+        node.addEventListener("mousedown", handlePieceStart);
+        node.addEventListener("touchstart", handlePieceStart, { passive: false });
 
         return node;
       }
@@ -1364,13 +1363,13 @@
               prev.appendChild(t);
             }
 
-            // Unified обработчик для store slots - работает и для mouse и для touch
-            slot.addEventListener("mousedown", handleStoreDragStart);
-            slot.addEventListener("touchstart", handleStoreDragStart, { passive: false });
-
-            function handleStoreDragStart(e) {
+            // Единый обработчик для store drag start
+            function handleStoreStart(e) {
               beginDragFromStore(it, idx, e);
             }
+            
+            slot.addEventListener("mousedown", handleStoreStart);
+            slot.addEventListener("touchstart", handleStoreStart, { passive: false });
           } else {
             prev.style.background = "linear-gradient(135deg,#f1f5f9,#cbd5e1)";
           }
@@ -1419,7 +1418,31 @@
         };
         setHeld(dragging.item, true);
 
-        // Unified обработчики для движения и окончания
+        // Добавляем единые обработчики для движения
+        addDragListeners(e);
+      }
+
+      function beginDragFromBoard(p, r, c, e) {
+        e.preventDefault();
+        const coords = getEventCoords(e);
+        
+        // КЛЮЧЕВОЕ ИСПРАВЛЕНИЕ: НЕ удаляем объект сразу, а только помечаем его как held
+        // Удаление происходит только при движении мыши/пальца
+        setHeld(p, true);
+        
+        dragging = {
+          src: "board",
+          item: p,
+          originCell: { r, c },
+          ghost: createGhost(p, coords.pageX, coords.pageY),
+          objectRemoved: false  // флаг что объект еще не удален из ячейки
+        };
+
+        // Добавляем единые обработчики для движения
+        addDragListeners(e);
+      }
+
+      function addDragListeners(e) {
         if (e.type === "touchstart") {
           document.addEventListener("touchmove", onDragMove, { passive: false });
           document.addEventListener("touchend", onDragEnd, { passive: false });
@@ -1430,35 +1453,29 @@
         }
       }
 
-      function beginDragFromBoard(p, r, c, e) {
-        e.preventDefault();
-        const coords = getEventCoords(e);
-        dragging = {
-          src: "board",
-          item: p,
-          originCell: { r, c },
-          ghost: createGhost(p, coords.pageX, coords.pageY),
-        };
-        setHeld(dragging.item, true);
-
-        // Очищаем ячейку ОДИНАКОВО для PC и mobile
-        cells[r][c].piece = null;
-        updateCellVisual(r, c);
-
-        // Unified обработчики для движения и окончания
-        if (e.type === "touchstart") {
-          document.addEventListener("touchmove", onDragMove, { passive: false });
-          document.addEventListener("touchend", onDragEnd, { passive: false });
-          document.addEventListener("touchcancel", onDragEnd, { passive: false });
+      function removeDragListeners(e) {
+        if (e.type.startsWith("touch")) {
+          document.removeEventListener("touchmove", onDragMove);
+          document.removeEventListener("touchend", onDragEnd);
+          document.removeEventListener("touchcancel", onDragEnd);
         } else {
-          document.addEventListener("mousemove", onDragMove);
-          document.addEventListener("mouseup", onDragEnd);
+          document.removeEventListener("mousemove", onDragMove);
+          document.removeEventListener("mouseup", onDragEnd);
         }
       }
 
       function onDragMove(e) {
         if (!dragging) return;
         e.preventDefault();
+        
+        // КЛЮЧЕВОЕ ИСПРАВЛЕНИЕ: удаляем объект из ячейки только при первом движении
+        if (dragging.src === "board" && !dragging.objectRemoved) {
+          const { r, c } = dragging.originCell;
+          cells[r][c].piece = null;
+          updateCellVisual(r, c);
+          dragging.objectRemoved = true;
+        }
+        
         const coords = getEventCoords(e);
         dragging.ghost.style.left = coords.pageX + "px";
         dragging.ghost.style.top = coords.pageY + "px";
@@ -1480,15 +1497,7 @@
         if (!dragging) return;
         e.preventDefault();
 
-        // Очищаем обработчики ОДИНАКОВО для PC и mobile
-        if (e.type.startsWith("touch")) {
-          document.removeEventListener("touchmove", onDragMove);
-          document.removeEventListener("touchend", onDragEnd);
-          document.removeEventListener("touchcancel", onDragEnd);
-        } else {
-          document.removeEventListener("mousemove", onDragMove);
-          document.removeEventListener("mouseup", onDragEnd);
-        }
+        removeDragListeners(e);
 
         const coords = getEventCoords(e);
         const cellEl = findCellAt(coords.x, coords.y);
@@ -1511,9 +1520,12 @@
 
       function handleDropOutsideBoard() {
         if (dragging.src === "board" && dragging.originCell) {
-          placePieceAt(dragging.item, dragging.originCell.r, dragging.originCell.c, false);
+          // ИСПРАВЛЕНИЕ: возвращаем объект на исходное место
+          const { r, c } = dragging.originCell;
+          placePieceAt(dragging.item, r, c, false);
           recomputeCoverage();
         } else if (dragging.src === "store") {
+          // Возвращаем в store
           storeItems[dragging.originIndex] = dragging.item;
           renderStore();
         }
@@ -1552,6 +1564,7 @@
           return;
         }
 
+        // Если нельзя слить, возвращаем на исходное место
         if (dragging.src === "board") {
           const origin = dragging.originCell;
           placePieceAt(item, origin.r, origin.c, false);
