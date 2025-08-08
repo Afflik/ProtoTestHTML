@@ -1235,6 +1235,7 @@
         }
         if (p.held) node.classList.add("inactive");
 
+        // Обработка ввода для PC (mouse)
         if (!isMobile) {
           node.addEventListener("mousedown", (e) => {
             e.stopPropagation();
@@ -1244,6 +1245,7 @@
           });
         }
 
+        // Обработка ввода для mobile (touch) - полностью повторяет PC логику
         node.addEventListener(
           "touchstart",
           (e) => {
@@ -1277,7 +1279,7 @@
             };
             setHeld(p, true);
 
-            // Добавляем глобальные обработчики
+            // Добавляем глобальные обработчики для движения и окончания
             document.addEventListener("touchmove", onDragMove, { passive: false });
             document.addEventListener("touchend", onDragEnd, { passive: false });
             document.addEventListener("touchcancel", onDragEnd, { passive: false });
@@ -1480,11 +1482,9 @@
         };
         setHeld(dragging.item, true);
 
-        // Очищаем ячейку для desktop
-        if (!isMobile) {
-          cells[r][c].piece = null;
-          updateCellVisual(r, c);
-        }
+        // Очищаем ячейку
+        cells[r][c].piece = null;
+        updateCellVisual(r, c);
 
         if (isMobile) {
           document.addEventListener("touchmove", onDragMove, { passive: false });
@@ -1508,7 +1508,7 @@
           hoverCell.el.classList.remove("drag-over");
           hoverCell = null;
         }
-        if (cellEl && !isMobile) {
+        if (cellEl) {
           const r = +cellEl.dataset.r,
             c = +cellEl.dataset.c;
           hoverCell = { r, c, el: cellEl };
